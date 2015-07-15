@@ -155,11 +155,14 @@ func (c *client) doRequest(requestName string, params rata.Params, queryParams u
 }
 
 func (c *client) do(req *http.Request, responseObject interface{}) error {
+	start := time.Now()
 	res, err := c.httpClient.Do(req)
+	end := time.Now()
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
+	println("response received", end.Sub(start).String())
 
 	var parsedContentType string
 	if contentType, ok := res.Header[ContentTypeHeader]; ok {
@@ -182,10 +185,13 @@ func (c *client) do(req *http.Request, responseObject interface{}) error {
 }
 
 func handleProtoResponse(res *http.Response, responseObject proto.Message) error {
+	start := time.Now()
 	buf, err := ioutil.ReadAll(res.Body)
+	end := time.Now()
 	if err != nil {
 		return &Error{Type: proto.String(InvalidResponse), Message: proto.String(err.Error())}
 	}
+	println("read all", end.Sub(start).String())
 
 	if res.StatusCode > 299 {
 		errResponse := &Error{}
@@ -196,10 +202,13 @@ func handleProtoResponse(res *http.Response, responseObject proto.Message) error
 		return errResponse
 	}
 
+	start = time.Now()
 	err = proto.Unmarshal(buf, responseObject)
+	end = time.Now()
 	if err != nil {
 		return Error{Type: proto.String(InvalidProtobufMessage), Message: proto.String(err.Error())}
 	}
+	println("unmarshal", end.Sub(start).String())
 	return nil
 }
 

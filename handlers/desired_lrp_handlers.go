@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/cloudfoundry-incubator/bbs"
 	"github.com/cloudfoundry-incubator/bbs/db"
@@ -34,7 +35,10 @@ func (h *DesiredLRPHandler) DesiredLRPs(w http.ResponseWriter, req *http.Request
 		return
 	}
 
+	start := time.Now()
 	writeProtoResponse(w, http.StatusOK, desiredLRPs)
+	end := time.Now()
+	logger.Info("proto marshal: " + end.Sub(start).String())
 }
 
 func (h *DesiredLRPHandler) DesiredLRPByProcessGuid(w http.ResponseWriter, req *http.Request) {

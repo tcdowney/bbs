@@ -1,15 +1,12 @@
 package db
 
 import (
-	"encoding/base64"
-	"fmt"
+	"encoding/json"
 	"path"
-	"sync"
-	"sync/atomic"
+	"time"
 
 	"github.com/cloudfoundry-incubator/bbs"
 	"github.com/cloudfoundry-incubator/bbs/models"
-	"github.com/cloudfoundry/gunk/workpool"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -25,7 +22,9 @@ func DesiredLRPSchemaPathByProcessGuid(processGuid string) string {
 }
 
 func (db *ETCDDB) DesiredLRPs(filter models.DesiredLRPFilter, logger lager.Logger) (*models.DesiredLRPs, *bbs.Error) {
+	start := time.Now()
 	root, bbsErr := db.fetchRecursiveRaw(DesiredLRPSchemaRoot, logger)
+	end := time.Now()
 	if bbsErr.Equal(bbs.ErrResourceNotFound) {
 		return &models.DesiredLRPs{}, nil
 	}
@@ -36,48 +35,46 @@ func (db *ETCDDB) DesiredLRPs(filter models.DesiredLRPFilter, logger lager.Logge
 		return &models.DesiredLRPs{}, nil
 	}
 
+	logger.Info("etc fetch recursive: " + end.Sub(start).String())
 	desiredLRPs := models.DesiredLRPs{}
 
-	lrpsLock := sync.Mutex{}
-	var workErr atomic.Value
-	works := []func(){}
+	var base64time int64
+
+	logger.Debug("performing-deserialization-work")
+	start = time.Now()
 
 	for _, node := range root.Nodes {
 		node := node
 
-		works = append(works, func() {
-			var lrp models.DesiredLRP
-			logger.Debug("logging node value", lager.Data{"node value": node.Value})
-			m, _ := base64.StdEncoding.DecodeString(node.Value)
+		var lrp models.DesiredLRP
+		logger.Debug("logging node value", lager.Data{"node value": node.Value})
+		// start := time.Now()
+		// m, err := base64.StdEncoding.DecodeString(node.Value)
+		// end := time.Now()
+		// if err != nil {
+		// 	logger.Error("failed-parsing-desired-lrp", err)
+		// 	return nil, bbs.ErrUnknownError
+		// }
 
-			deserializeErr := lrp.Unmarshal([]byte(m))
-			//deserializeErr = models.FromJSON([]byte(node.Value), &lrp)
-			if deserializeErr != nil {
-				logger.Error("failed-parsing-desired-lrp", deserializeErr)
-				workErr.Store(fmt.Errorf("cannot parse lrp JSON for key %s: %s", node.Key, deserializeErr.Error()))
-				return
-			}
+		// err = lrp.Unmarshal([]byte(m))
+		//err := models.FromJSON([]byte(node.Value), &lrp)
+		err := json.Unmarshal([]byte(node.Value), &lrp)
+		if err != nil {
+			logger.Error("failed-parsing-desired-lrp", err)
+			return nil, bbs.ErrUnknownError
+		}
 
-			if filter.Domain == "" || lrp.GetDomain() == filter.Domain {
-				lrpsLock.Lock()
-				desiredLRPs.DesiredLrps = append(desiredLRPs.DesiredLrps, &lrp)
-				lrpsLock.Unlock()
-			}
-		})
+		if filter.Domain == "" || lrp.GetDomain() == filter.Domain {
+
+			desiredLRPs.DesiredLrps = append(desiredLRPs.DesiredLrps, &lrp)
+			// base64time += int64(end.Sub(start))
+		}
 	}
 
-	throttler, err := workpool.NewThrottler(maxDesiredLRPGetterWorkPoolSize, works)
-	if err != nil {
-		logger.Error("failed-constructing-throttler", err, lager.Data{"max-workers": maxDesiredLRPGetterWorkPoolSize, "num-works": len(works)})
-		return &models.DesiredLRPs{}, bbs.ErrUnknownError
-	}
+	end = time.Now()
 
-	logger.Debug("performing-deserialization-work")
-	throttler.Work()
-	if err, ok := workErr.Load().(error); ok {
-		logger.Error("failed-performing-deserialization-work", err)
-		return &models.DesiredLRPs{}, bbs.ErrUnknownError
-	}
+	logger.Info("decode+unmarshal", lager.Data{"total": end.Sub(start).String(), "base64": base64time})
+
 	logger.Debug("succeeded-performing-deserialization-work", lager.Data{"num-desired-lrps": len(desiredLRPs.GetDesiredLrps())})
 
 	return &desiredLRPs, nil
