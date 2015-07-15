@@ -7,6 +7,11 @@ import (
 
 var processGuidPattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
+type DesiredLRPChange struct {
+	Before *DesiredLRP
+	After  *DesiredLRP
+}
+
 type DesiredLRPFilter struct {
 	Domain string
 }

@@ -20,6 +20,11 @@ var ActualLRPStates = []string{
 	ActualLRPStateCrashed,
 }
 
+type ActualLRPChange struct {
+	Before *ActualLRPGroup
+	After  *ActualLRPGroup
+}
+
 type ActualLRPFilter struct {
 	Domain string
 	CellID string

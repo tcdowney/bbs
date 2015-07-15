@@ -9,8 +9,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func (t *TestHelper) NewValidActualLRP(guid string, index int32) models.ActualLRP {
-	actualLRP := models.ActualLRP{
+func (t *TestHelper) NewValidActualLRP(guid string, index int32) *models.ActualLRP {
+	actualLRP := &models.ActualLRP{
 		ActualLRPKey:         models.NewActualLRPKey(guid, index, "some-domain"),
 		ActualLRPInstanceKey: models.NewActualLRPInstanceKey("some-guid", "some-cell"),
 		ActualLRPNetInfo: models.NewActualLRPNetInfo("some-address", []*models.PortMapping{
@@ -31,9 +31,9 @@ func (t *TestHelper) NewValidActualLRP(guid string, index int32) models.ActualLR
 	return actualLRP
 }
 
-func (t *TestHelper) NewValidDesiredLRP(guid string) models.DesiredLRP {
+func (t *TestHelper) NewValidDesiredLRP(guid string) *models.DesiredLRP {
 	myRouterJSON := json.RawMessage(`{"foo":"bar"}`)
-	desiredLRP := models.DesiredLRP{
+	desiredLRP := &models.DesiredLRP{
 		ProcessGuid:          &guid,
 		Domain:               proto.String("some-domain"),
 		RootFs:               proto.String("some:rootfs"),
