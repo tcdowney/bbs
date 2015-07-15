@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/base64"
 	"fmt"
 	"path"
 	"sync"
@@ -46,7 +47,11 @@ func (db *ETCDDB) DesiredLRPs(filter models.DesiredLRPFilter, logger lager.Logge
 
 		works = append(works, func() {
 			var lrp models.DesiredLRP
-			deserializeErr := models.FromJSON([]byte(node.Value), &lrp)
+			logger.Debug("logging node value", lager.Data{"node value": node.Value})
+			m, _ := base64.StdEncoding.DecodeString(node.Value)
+
+			deserializeErr := lrp.Unmarshal([]byte(m))
+			//deserializeErr = models.FromJSON([]byte(node.Value), &lrp)
 			if deserializeErr != nil {
 				logger.Error("failed-parsing-desired-lrp", deserializeErr)
 				workErr.Store(fmt.Errorf("cannot parse lrp JSON for key %s: %s", node.Key, deserializeErr.Error()))
