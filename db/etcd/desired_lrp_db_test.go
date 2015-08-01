@@ -1,8 +1,6 @@
 package etcd_test
 
 import (
-	"github.com/cloudfoundry-incubator/bbs/db"
-	. "github.com/cloudfoundry-incubator/bbs/db/etcd"
 	"github.com/cloudfoundry-incubator/bbs/models"
 
 	. "github.com/onsi/ginkgo"
@@ -10,14 +8,6 @@ import (
 )
 
 var _ = Describe("DesiredLRPDB", func() {
-	var (
-		etcdDB db.DesiredLRPDB
-	)
-
-	BeforeEach(func() {
-		etcdDB = NewETCD(etcdClient, auctioneerClient, clock)
-	})
-
 	Describe("DesiredLRPs", func() {
 		var filter models.DesiredLRPFilter
 		var desiredLRPsInDomains map[string][]*models.DesiredLRP

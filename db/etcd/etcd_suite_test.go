@@ -5,9 +5,13 @@ import (
 	"time"
 
 	fakeauctioneer "github.com/cloudfoundry-incubator/auctioneer/fakes"
+	"github.com/cloudfoundry-incubator/bbs/db"
+	"github.com/cloudfoundry-incubator/bbs/db/consul"
+	"github.com/cloudfoundry-incubator/bbs/db/etcd"
 	"github.com/cloudfoundry-incubator/bbs/db/etcd/internal/test_helpers"
 	"github.com/cloudfoundry-incubator/consuladapter"
 	"github.com/cloudfoundry-incubator/consuladapter/consulrunner"
+	fakerep "github.com/cloudfoundry-incubator/rep/fakes"
 	"github.com/cloudfoundry/storeadapter/storerunner/etcdstorerunner"
 	etcdclient "github.com/coreos/go-etcd/etcd"
 	. "github.com/onsi/ginkgo"
@@ -28,10 +32,14 @@ var consulRunner *consulrunner.ClusterRunner
 var consulSession *consuladapter.Session
 
 var auctioneerClient *fakeauctioneer.FakeClient
+var cellClient *fakerep.FakeCellClient
 
 var logger *lagertest.TestLogger
 var clock *fakeclock.FakeClock
 var testHelper *test_helpers.TestHelper
+
+var cellDB db.CellDB
+var etcdDB db.DB
 
 func TestDB(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -68,9 +76,15 @@ var _ = AfterSuite(func() {
 
 var _ = BeforeEach(func() {
 	auctioneerClient = new(fakeauctioneer.FakeClient)
+	cellClient = new(fakerep.FakeCellClient)
 	etcdRunner.Reset()
+
+	consulRunner.Reset()
+	consulSession = consulRunner.NewSession("a-session")
 
 	etcdClient = etcdRunner.Client()
 	etcdClient.SetConsistency(etcdclient.STRONG_CONSISTENCY)
-	testHelper = test_helpers.NewTestHelper(etcdClient)
+	testHelper = test_helpers.NewTestHelper(etcdClient, consulSession)
+	cellDB = consul.NewConsul(consulSession)
+	etcdDB = etcd.NewETCD(etcdClient, auctioneerClient, cellClient, cellDB, clock)
 })

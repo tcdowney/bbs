@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cloudfoundry-incubator/bbs/db"
 	"github.com/cloudfoundry-incubator/bbs/db/etcd"
 	"github.com/cloudfoundry-incubator/bbs/models"
 
@@ -159,11 +158,9 @@ func (t crashTest) Test() {
 			instanceKey              *models.ActualLRPInstanceKey
 			initialTimestamp         int64
 			initialModificationIndex uint32
-			etcdDB                   db.DB
 		)
 
 		BeforeEach(func() {
-			etcdDB = etcd.NewETCD(etcdClient, auctioneerClient, clock)
 			actualLRP := t.LRP()
 			actualLRPKey = &actualLRP.ActualLRPKey
 			instanceKey = &actualLRP.ActualLRPInstanceKey

@@ -8,6 +8,7 @@
 	It is generated from these files:
 		actions.proto
 		actual_lrp.proto
+		cell_presence.proto
 		desired_lrp.proto
 		domain.proto
 		environment_variables.proto

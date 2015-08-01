@@ -329,6 +329,23 @@ var _ = Describe("ActualLRP API", func() {
 		})
 	})
 
+	Describe("POST /v1/actual_lrps/retire", func() {
+		var (
+			retireErr error
+		)
+
+		JustBeforeEach(func() {
+			retireErr = client.RetireActualLRP(&unclaimedLRPKey)
+		})
+
+		It("retires the actual_lrp", func() {
+			Expect(retireErr).NotTo(HaveOccurred())
+
+			_, err := client.ActualLRPGroupByProcessGuidAndIndex(unclaimedProcessGuid, unclaimedIndex)
+			Expect(err).To(Equal(models.ErrResourceNotFound))
+		})
+	})
+
 	Describe("DELETE /v1/actual_lrps/:process_guid/index/:index", func() {
 		var (
 			instanceKey models.ActualLRPInstanceKey
