@@ -15,6 +15,7 @@ const DataSchemaRoot = "/v1/"
 
 const (
 	ETCDErrKeyNotFound  = 100
+	ETCDErrKeyExists    = 105
 	ETCDErrIndexCleared = 401
 )
 
@@ -38,12 +39,8 @@ func NewETCD(etcdClient *etcd.Client, auctioneerClient auctioneer.Client, clock 
 func (db *ETCDDB) fetchRecursiveRaw(logger lager.Logger, key string) (*etcd.Node, *models.Error) {
 	logger.Debug("fetching-recursive-from-etcd")
 	response, err := db.client.Get(key, false, true)
-	if etcdErrCode(err) == ETCDErrKeyNotFound {
-		logger.Debug("no-nodes-to-fetch")
-		return nil, models.ErrResourceNotFound
-	} else if err != nil {
-		logger.Error("failed-fetching-recursive-from-etcd", err)
-		return nil, models.ErrUnknownError
+	if err != nil {
+		return nil, ErrorFromEtcdError(logger, err)
 	}
 	logger.Debug("succeeded-fetching-recursive-from-etcd", lager.Data{"num-lrps": response.Node.Nodes.Len()})
 	return response.Node, nil
@@ -52,15 +49,24 @@ func (db *ETCDDB) fetchRecursiveRaw(logger lager.Logger, key string) (*etcd.Node
 func (db *ETCDDB) fetchRaw(logger lager.Logger, key string) (*etcd.Node, *models.Error) {
 	logger.Debug("fetching-from-etcd")
 	response, err := db.client.Get(key, false, false)
-	if etcdErrCode(err) == ETCDErrKeyNotFound {
-		logger.Debug("no-node-to-fetch")
-		return nil, models.ErrResourceNotFound
-	} else if err != nil {
-		logger.Error("failed-fetching-from-etcd", err)
-		return nil, models.ErrUnknownError
+	if err != nil {
+		return nil, ErrorFromEtcdError(logger, err)
 	}
 	logger.Debug("succeeded-fetching-from-etcd")
 	return response.Node, nil
+}
+
+func ErrorFromEtcdError(logger lager.Logger, err error) *models.Error {
+	switch etcdErrCode(err) {
+	case ETCDErrKeyNotFound:
+		logger.Debug("no-node-to-fetch")
+		return models.ErrResourceNotFound
+	case ETCDErrKeyExists:
+		return models.ErrResourceExists
+	default:
+		logger.Error("failed-fetching-from-etcd", err)
+		return models.ErrUnknownError
+	}
 }
 
 func etcdErrCode(err error) int {

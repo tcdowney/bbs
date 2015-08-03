@@ -20,6 +20,7 @@ const (
 
 	ResourceConflict = "ResourceConflict"
 	ResourceNotFound = "ResourceNotFound"
+	ResourceExists   = "ResourceExists"
 	RouterError      = "RouterError"
 
 	ActualLRPCannotBeClaimed = "ActualLRPCannotBeClaimed"
@@ -33,6 +34,11 @@ var (
 	ErrResourceNotFound = &Error{
 		Type:    ResourceNotFound,
 		Message: "the requested resource could not be found",
+	}
+
+	ErrResourceExists = &Error{
+		Type:    ResourceExists,
+		Message: "the requested resource already exists",
 	}
 
 	ErrBadRequest = &Error{

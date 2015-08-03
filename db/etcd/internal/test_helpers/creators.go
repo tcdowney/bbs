@@ -78,7 +78,9 @@ func (t *TestHelper) CreateMalformedDesiredLRP(guid string) {
 }
 
 func (t *TestHelper) CreateMalformedTask(guid string) {
-	t.createMalformedValueForKey(etcddb.TaskSchemaPath(&models.Task{TaskGuid: guid}))
+	task := &models.Task{}
+	task.TaskGuid = guid
+	t.createMalformedValueForKey(etcddb.TaskSchemaPath(task))
 }
 
 func (t *TestHelper) createMalformedValueForKey(key string) {
