@@ -41,7 +41,11 @@ type Client interface {
 	RemoveActualLRP(processGuid string, index int) error
 	RetireActualLRP(key *models.ActualLRPKey) error
 
-	RemoveEvacuatingActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) error
+	EvacuateClaimedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (bool, error)
+	// EvacuateRunningActualLRP(models.ActualLRPKey, models.ActualLRPInstanceKey, models.ActualLRPNetInfo, uint64) (models.ContainerRetainment, error)
+	// EvacuateStoppedActualLRP(models.ActualLRPKey, models.ActualLRPInstanceKey) (models.ContainerRetainment, error)
+	// EvacuateCrashedActualLRP(models.ActualLRPKey, models.ActualLRPInstanceKey, string) (models.ContainerRetainment, error)
+	RemoveEvacuatingActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) error
 
 	DesiredLRPs(models.DesiredLRPFilter) ([]*models.DesiredLRP, error)
 	DesiredLRPByProcessGuid(processGuid string) (*models.DesiredLRP, error)
@@ -171,6 +175,21 @@ func (c *client) RetireActualLRP(key *models.ActualLRPKey) error {
 		ActualLrpKey: key,
 	}
 	return c.doRequest(RetireActualLRPRoute, nil, nil, &request, nil)
+}
+
+func (c *client) EvacuateClaimedActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) (bool, error) {
+	request := models.EvacuateClaimedActualLRPRequest{
+		ActualLrpKey:         key,
+		ActualLrpInstanceKey: instanceKey,
+	}
+
+	var response models.EvacuationResponse
+	err := c.doRequest(EvacuateClaimedActualLRPRoute, nil, nil, &request, &response)
+	if err != nil {
+		return false, err
+	}
+
+	return response.KeepContainer, nil
 }
 
 func (c *client) RemoveEvacuatingActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) error {

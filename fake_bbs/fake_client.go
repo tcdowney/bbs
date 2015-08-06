@@ -113,11 +113,21 @@ type FakeClient struct {
 	retireActualLRPReturns struct {
 		result1 error
 	}
-	RemoveEvacuatingActualLRPStub        func(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) error
+	EvacuateClaimedActualLRPStub        func(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (models.ContainerRetainment, error)
+	evacuateClaimedActualLRPMutex       sync.RWMutex
+	evacuateClaimedActualLRPArgsForCall []struct {
+		arg1 *models.ActualLRPKey
+		arg2 *models.ActualLRPInstanceKey
+	}
+	evacuateClaimedActualLRPReturns struct {
+		result1 models.ContainerRetainment
+		result2 error
+	}
+	RemoveEvacuatingActualLRPStub        func(*models.ActualLRPKey, *models.ActualLRPInstanceKey) error
 	removeEvacuatingActualLRPMutex       sync.RWMutex
 	removeEvacuatingActualLRPArgsForCall []struct {
-		key         *models.ActualLRPKey
-		instanceKey *models.ActualLRPInstanceKey
+		arg1 *models.ActualLRPKey
+		arg2 *models.ActualLRPInstanceKey
 	}
 	removeEvacuatingActualLRPReturns struct {
 		result1 error
@@ -563,15 +573,49 @@ func (fake *FakeClient) RetireActualLRPReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeClient) RemoveEvacuatingActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) error {
+func (fake *FakeClient) EvacuateClaimedActualLRP(arg1 *models.ActualLRPKey, arg2 *models.ActualLRPInstanceKey) (models.ContainerRetainment, error) {
+	fake.evacuateClaimedActualLRPMutex.Lock()
+	fake.evacuateClaimedActualLRPArgsForCall = append(fake.evacuateClaimedActualLRPArgsForCall, struct {
+		arg1 *models.ActualLRPKey
+		arg2 *models.ActualLRPInstanceKey
+	}{arg1, arg2})
+	fake.evacuateClaimedActualLRPMutex.Unlock()
+	if fake.EvacuateClaimedActualLRPStub != nil {
+		return fake.EvacuateClaimedActualLRPStub(arg1, arg2)
+	} else {
+		return fake.evacuateClaimedActualLRPReturns.result1, fake.evacuateClaimedActualLRPReturns.result2
+	}
+}
+
+func (fake *FakeClient) EvacuateClaimedActualLRPCallCount() int {
+	fake.evacuateClaimedActualLRPMutex.RLock()
+	defer fake.evacuateClaimedActualLRPMutex.RUnlock()
+	return len(fake.evacuateClaimedActualLRPArgsForCall)
+}
+
+func (fake *FakeClient) EvacuateClaimedActualLRPArgsForCall(i int) (*models.ActualLRPKey, *models.ActualLRPInstanceKey) {
+	fake.evacuateClaimedActualLRPMutex.RLock()
+	defer fake.evacuateClaimedActualLRPMutex.RUnlock()
+	return fake.evacuateClaimedActualLRPArgsForCall[i].arg1, fake.evacuateClaimedActualLRPArgsForCall[i].arg2
+}
+
+func (fake *FakeClient) EvacuateClaimedActualLRPReturns(result1 models.ContainerRetainment, result2 error) {
+	fake.EvacuateClaimedActualLRPStub = nil
+	fake.evacuateClaimedActualLRPReturns = struct {
+		result1 models.ContainerRetainment
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClient) RemoveEvacuatingActualLRP(arg1 *models.ActualLRPKey, arg2 *models.ActualLRPInstanceKey) error {
 	fake.removeEvacuatingActualLRPMutex.Lock()
 	fake.removeEvacuatingActualLRPArgsForCall = append(fake.removeEvacuatingActualLRPArgsForCall, struct {
-		key         *models.ActualLRPKey
-		instanceKey *models.ActualLRPInstanceKey
-	}{key, instanceKey})
+		arg1 *models.ActualLRPKey
+		arg2 *models.ActualLRPInstanceKey
+	}{arg1, arg2})
 	fake.removeEvacuatingActualLRPMutex.Unlock()
 	if fake.RemoveEvacuatingActualLRPStub != nil {
-		return fake.RemoveEvacuatingActualLRPStub(key, instanceKey)
+		return fake.RemoveEvacuatingActualLRPStub(arg1, arg2)
 	} else {
 		return fake.removeEvacuatingActualLRPReturns.result1
 	}
@@ -586,7 +630,7 @@ func (fake *FakeClient) RemoveEvacuatingActualLRPCallCount() int {
 func (fake *FakeClient) RemoveEvacuatingActualLRPArgsForCall(i int) (*models.ActualLRPKey, *models.ActualLRPInstanceKey) {
 	fake.removeEvacuatingActualLRPMutex.RLock()
 	defer fake.removeEvacuatingActualLRPMutex.RUnlock()
-	return fake.removeEvacuatingActualLRPArgsForCall[i].key, fake.removeEvacuatingActualLRPArgsForCall[i].instanceKey
+	return fake.removeEvacuatingActualLRPArgsForCall[i].arg1, fake.removeEvacuatingActualLRPArgsForCall[i].arg2
 }
 
 func (fake *FakeClient) RemoveEvacuatingActualLRPReturns(result1 error) {

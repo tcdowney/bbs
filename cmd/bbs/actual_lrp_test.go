@@ -390,4 +390,70 @@ var _ = Describe("ActualLRP API", func() {
 			Expect(group.Evacuating).To(BeNil())
 		})
 	})
+
+	Describe("EvacuateClaimedActualLRP", func() {
+		var (
+			containerRetainment models.ContainerRetainment
+			evacuateErr         error
+
+			actualLRPKey         models.ActualLRPKey
+			actualLRPInstanceKey models.ActualLRPInstanceKey
+		)
+
+		BeforeEach(func() {
+			actualLRPKey = models.NewActualLRPKey("some-process-guid", 42, "some-domain")
+			actualLRPInstanceKey = models.NewActualLRPInstanceKey("some-instance-guid", cellID)
+
+			etcdHelper.SetRawActualLRP(&models.ActualLRP{
+				ActualLRPKey:         actualLRPKey,
+				ActualLRPInstanceKey: actualLRPInstanceKey,
+				State:                models.ActualLRPStateClaimed,
+				Since:                time.Now().UnixNano(),
+			})
+		})
+
+		JustBeforeEach(func() {
+			containerRetainment, evacuateErr = client.EvacuateClaimedActualLRP(&actualLRPKey, &actualLRPInstanceKey)
+		})
+
+		It("removes the claimed actual_lrp without evacuating", func() {
+			Expect(evacuateErr).NotTo(HaveOccurred())
+
+			_, err := client.ActualLRPGroupByProcessGuidAndIndex(actualLRPKey.ProcessGuid, int(actualLRPKey.Index))
+			Expect(err).To(Equal(models.ErrResourceNotFound))
+		})
+	})
+
+	// Describe("EvacuateRunningActualLRP", func() {
+	// 	var (
+	// 		containerRetainment models.ContainerRetainment
+	// 		evacuateErr         error
+	// 	)
+	//
+	// 	JustBeforeEach(func() {
+	// 		containerRetainment, evacuateErr = client.EvacuateRunningActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey)
+	// 	})
+	// })
+
+	// Describe("EvacuateStoppedActualLRP", func() {
+	// 	var (
+	// 		containerRetainment models.ContainerRetainment
+	// 		evacuateErr         error
+	// 	)
+	//
+	// 	JustBeforeEach(func() {
+	// 		containerRetainment, evacuateErr = client.EvacuateStoppedActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey)
+	// 	})
+	// })
+	//
+	// Describe("EvacuateCrashedActualLRP", func() {
+	// 	var (
+	// 		containerRetainment models.ContainerRetainment
+	// 		evacuateErr         error
+	// 	)
+	//
+	// 	JustBeforeEach(func() {
+	// 		containerRetainment, evacuateErr = client.EvacuateCrashedActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey, "some-reason")
+	// 	})
+	// })
 })
