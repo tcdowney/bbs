@@ -1,10 +1,13 @@
 package etcd
 
 import (
+	"bytes"
+	"encoding/base64"
 	"sync"
 
 	"github.com/cloudfoundry-incubator/bbs/auctionhandlers"
 	"github.com/cloudfoundry-incubator/bbs/cellhandlers"
+	"github.com/cloudfoundry-incubator/bbs/crypt"
 	"github.com/cloudfoundry-incubator/bbs/db"
 	"github.com/cloudfoundry-incubator/bbs/models"
 	"github.com/coreos/go-etcd/etcd"
@@ -28,9 +31,16 @@ type ETCDDB struct {
 	cellClient        cellhandlers.Client
 
 	cellDB db.CellDB
+
+	streamCrypt *crypt.StreamCrypt
 }
 
 func NewETCD(etcdClient *etcd.Client, auctioneerClient auctionhandlers.Client, cellClient cellhandlers.Client, cellDB db.CellDB, clock clock.Clock) *ETCDDB {
+	iv := []byte("abcdabcdabcdabcd")
+	streamCrypt, err := crypt.NewStreamCrypt([]byte("-this is an aes-192 key-"), iv)
+	if err != nil {
+		return nil
+	}
 	return &ETCDDB{etcdClient,
 		clock,
 		map[chan bool]bool{},
@@ -38,6 +48,7 @@ func NewETCD(etcdClient *etcd.Client, auctioneerClient auctionhandlers.Client, c
 		auctioneerClient,
 		cellClient,
 		cellDB,
+		streamCrypt,
 	}
 }
 
@@ -79,4 +90,34 @@ func etcdErrCode(err error) int {
 		}
 	}
 	return 0
+}
+
+func (db *ETCDDB) decodeFromStorage(s string) []byte {
+	if db.streamCrypt != nil {
+		fromStorage := bytes.NewBufferString(s)
+		toRead := &bytes.Buffer{}
+		encrypted := base64.NewDecoder(base64.StdEncoding, fromStorage)
+		err := db.streamCrypt.Decrypt(toRead, encrypted)
+		if err != nil {
+			panic("failed to decrypt")
+		}
+		return toRead.Bytes()
+	} else {
+		return []byte(s)
+	}
+}
+
+func (db *ETCDDB) encodeForStorage(s []byte) string {
+	if db.streamCrypt != nil {
+		value := bytes.NewBuffer(s)
+		toWrite := &bytes.Buffer{}
+		encoder := base64.NewEncoder(base64.StdEncoding, toWrite)
+		err := db.streamCrypt.Encrypt(encoder, value)
+		if err != nil {
+			panic("failed to encrypt")
+		}
+		return toWrite.String()
+	} else {
+		return string(s)
+	}
 }

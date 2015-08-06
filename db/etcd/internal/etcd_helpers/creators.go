@@ -1,6 +1,8 @@
 package etcd_helpers
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -15,7 +17,7 @@ func (t *ETCDHelper) SetRawActualLRP(lrp *models.ActualLRP) {
 	Expect(err).NotTo(HaveOccurred())
 
 	key := etcddb.ActualLRPSchemaPath(lrp.GetProcessGuid(), lrp.GetIndex())
-	_, err = t.etcdClient.Set(key, string(value), 0)
+	_, err = t.etcdClient.Set(key, t.encodeForStorage(value), 0)
 
 	Expect(err).NotTo(HaveOccurred())
 }
@@ -25,9 +27,18 @@ func (t *ETCDHelper) SetRawEvacuatingActualLRP(lrp *models.ActualLRP, ttlInSecon
 	Expect(err).NotTo(HaveOccurred())
 
 	key := etcddb.EvacuatingActualLRPSchemaPath(lrp.GetProcessGuid(), lrp.GetIndex())
-	_, err = t.etcdClient.Set(key, string(value), ttlInSeconds)
+	_, err = t.etcdClient.Set(key, t.encodeForStorage(value), ttlInSeconds)
 
 	Expect(err).NotTo(HaveOccurred())
+}
+
+func (t *ETCDHelper) encodeForStorage(s []byte) string {
+	value := bytes.NewBuffer(s)
+	toWrite := &bytes.Buffer{}
+	encoder := base64.NewEncoder(base64.StdEncoding, toWrite)
+	err := t.streamCrypt.Encrypt(encoder, value)
+	Expect(err).NotTo(HaveOccurred())
+	return toWrite.String()
 }
 
 func (t *ETCDHelper) SetRawDesiredLRP(lrp *models.DesiredLRP) {

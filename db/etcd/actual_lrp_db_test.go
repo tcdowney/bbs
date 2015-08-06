@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ActualLRPDB", func() {
+var _ = FDescribe("ActualLRPDB", func() {
 	const (
 		cellID          = "cell-id"
 		noExpirationTTL = 0
@@ -875,7 +875,7 @@ var _ = Describe("ActualLRPDB", func() {
 				Expect(lrpGroup.Instance.State).To(Equal(models.ActualLRPStateRunning))
 			})
 
-			It("sets the ModificationTag", func() {
+			FIt("sets the ModificationTag", func() {
 				lrpGroup, err := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, "process-guid", 1)
 				Expect(err).NotTo(HaveOccurred())
 

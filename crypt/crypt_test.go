@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/bbs/crypt"
@@ -12,25 +13,47 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+type C struct {
+	A string `json:"a"`
+}
+
+type J struct {
+	A string `json:"a"`
+	B int    `json:"b"`
+	C C      `json:"c"`
+}
+
 var _ = Describe("StreamCrypt", func() {
-	It("encrypts and decrypts", func() {
+	FIt("encrypts and decrypts", func() {
 		c, err := crypt.NewStreamCrypt(key, iv)
 		Expect(err).NotTo(HaveOccurred())
 
-		plaintext := bytes.NewBufferString("this is a string")
+		// obj := J{A: "asdf", B: 3, C: C{A: "potato"}}
+		// jsonValue, err := json.Marshal(&obj)
+		jsonValue := []byte("12345678912")
+		Expect(err).NotTo(HaveOccurred())
+
+		plaintext := bytes.NewBuffer(jsonValue)
 		ciphertext := &bytes.Buffer{}
 
-		err = c.Encrypt(ciphertext, plaintext)
+		encoder := base64.NewEncoder(base64.StdEncoding, ciphertext)
+		err = c.Encrypt(encoder, plaintext)
 		Expect(err).NotTo(HaveOccurred())
 
 		encrypted := ciphertext.Bytes()
 		decrypted := &bytes.Buffer{}
 
-		err = c.Decrypt(decrypted, bytes.NewBuffer(encrypted))
+		encBuffer := base64.NewDecoder(base64.StdEncoding, bytes.NewBuffer(encrypted))
+		err = c.Decrypt(decrypted, encBuffer)
 		Expect(err).NotTo(HaveOccurred())
 
 		fmt.Printf("%s", hex.Dump(encrypted))
 		fmt.Printf("%s", hex.Dump(decrypted.Bytes()))
+
+		otherObj := J{}
+		err = json.Unmarshal(decrypted.Bytes(), &otherObj)
+		Expect(err).NotTo(HaveOccurred())
+		// Expect(obj).To(Equal(otherObj))
 	})
 
 	Measure("time to encrypt 1k iterations of 1k", func(b Benchmarker) {

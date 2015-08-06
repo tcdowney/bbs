@@ -59,7 +59,7 @@ func (db *ETCDDB) ActualLRPGroups(logger lager.Logger, filter models.ActualLRPFi
 		node := node
 
 		works = append(works, func() {
-			g, err := parseActualLRPGroups(logger, node, filter)
+			g, err := db.parseActualLRPGroups(logger, node, filter)
 			if err != nil {
 				workErr.Store(err)
 				return
@@ -99,7 +99,7 @@ func (db *ETCDDB) ActualLRPGroupsByProcessGuid(logger lager.Logger, processGuid 
 		return &models.ActualLRPGroups{}, nil
 	}
 
-	return parseActualLRPGroups(logger, node, models.ActualLRPFilter{})
+	return db.parseActualLRPGroups(logger, node, models.ActualLRPFilter{})
 }
 
 func (db *ETCDDB) ActualLRPGroupByProcessGuidAndIndex(logger lager.Logger, processGuid string, index int32) (*models.ActualLRPGroup, *models.Error) {
@@ -116,8 +116,9 @@ func (db *ETCDDB) rawActualLRPGroupByProcessGuidAndIndex(logger lager.Logger, pr
 	group := models.ActualLRPGroup{}
 	for _, instanceNode := range node.Nodes {
 		var lrp models.ActualLRP
-		deserializeErr := models.FromJSON([]byte(instanceNode.Value), &lrp)
+		deserializeErr := models.FromJSON([]byte(db.decodeFromStorage(instanceNode.Value)), &lrp)
 		if deserializeErr != nil {
+			fmt.Printf("wooooo %s\n", db.decodeFromStorage(instanceNode.Value))
 			logger.Error("failed-parsing-actual-lrp", deserializeErr, lager.Data{"key": instanceNode.Key})
 			return nil, 0, models.ErrDeserializeJSON
 		}
@@ -145,7 +146,7 @@ func (db *ETCDDB) rawActuaLLRPByProcessGuidAndIndex(logger lager.Logger, process
 	}
 
 	var lrp models.ActualLRP
-	deserializeErr := json.Unmarshal([]byte(node.Value), &lrp)
+	deserializeErr := json.Unmarshal(db.decodeFromStorage(node.Value), &lrp)
 	if deserializeErr != nil {
 		return nil, 0, models.ErrDeserializeJSON
 	}
@@ -180,7 +181,7 @@ func (db *ETCDDB) ClaimActualLRP(logger lager.Logger, request *models.ClaimActua
 	}
 
 	logger.Info("starting")
-	_, err = db.client.CompareAndSwap(ActualLRPSchemaPath(request.ProcessGuid, request.Index), string(lrpRawJSON), 0, "", prevIndex)
+	_, err = db.client.CompareAndSwap(ActualLRPSchemaPath(request.ProcessGuid, request.Index), db.encodeForStorage(lrpRawJSON), 0, "", prevIndex)
 	if err != nil {
 		logger.Error("failed", err)
 		return nil, models.ErrActualLRPCannotBeClaimed
@@ -207,12 +208,12 @@ func (db *ETCDDB) createRunningActualLRP(logger lager.Logger, key *models.Actual
 		},
 	}
 
-	lrpRawJSON, err := json.Marshal(lrp)
+	s, err := json.Marshal(lrp)
 	if err != nil {
 		return nil, models.ErrSerializeJSON
 	}
 
-	_, err = db.client.Set(ActualLRPSchemaPath(key.ProcessGuid, key.Index), string(lrpRawJSON), 0)
+	_, err = db.client.Set(ActualLRPSchemaPath(key.ProcessGuid, key.Index), db.encodeForStorage(s), 0)
 	if err != nil {
 		logger.Error("failed", err)
 		return nil, models.ErrActualLRPCannotBeStarted
@@ -259,7 +260,7 @@ func (db *ETCDDB) StartActualLRP(logger lager.Logger, request *models.StartActua
 		return nil, models.ErrSerializeJSON
 	}
 
-	_, err = db.client.CompareAndSwap(ActualLRPSchemaPath(key.ProcessGuid, key.Index), string(lrpRawJSON), 0, "", prevIndex)
+	_, err = db.client.CompareAndSwap(ActualLRPSchemaPath(key.ProcessGuid, key.Index), db.encodeForStorage(lrpRawJSON), 0, "", prevIndex)
 	if err != nil {
 		logger.Error("failed", err)
 		return nil, models.ErrActualLRPCannotBeStarted
@@ -322,7 +323,7 @@ func (db *ETCDDB) CrashActualLRP(logger lager.Logger, request *models.CrashActua
 		return models.ErrSerializeJSON
 	}
 
-	_, err = db.client.CompareAndSwap(ActualLRPSchemaPath(key.ProcessGuid, key.Index), string(lrpRawJSON), 0, "", prevIndex)
+	_, err = db.client.CompareAndSwap(ActualLRPSchemaPath(key.ProcessGuid, key.Index), db.encodeForStorage(lrpRawJSON), 0, "", prevIndex)
 	if err != nil {
 		logger.Error("failed", err)
 		return models.ErrActualLRPCannotBeCrashed
@@ -384,7 +385,7 @@ func (db *ETCDDB) FailActualLRP(logger lager.Logger, request *models.FailActualL
 		return models.ErrSerializeJSON
 	}
 
-	_, err = db.client.CompareAndSwap(ActualLRPSchemaPath(key.ProcessGuid, key.Index), string(lrpRawJSON), 0, "", prevIndex)
+	_, err = db.client.CompareAndSwap(ActualLRPSchemaPath(key.ProcessGuid, key.Index), db.encodeForStorage(lrpRawJSON), 0, "", prevIndex)
 	if err != nil {
 		logger.Error("failed", err)
 		return models.ErrActualLRPCannotBeFailed
@@ -467,7 +468,7 @@ func (db *ETCDDB) removeActualLRP(logger lager.Logger, lrp *models.ActualLRP, pr
 	return nil
 }
 
-func parseActualLRPGroups(logger lager.Logger, node *etcd.Node, filter models.ActualLRPFilter) (*models.ActualLRPGroups, *models.Error) {
+func (db *ETCDDB) parseActualLRPGroups(logger lager.Logger, node *etcd.Node, filter models.ActualLRPFilter) (*models.ActualLRPGroups, *models.Error) {
 	var groups = &models.ActualLRPGroups{}
 
 	logger.Debug("performing-parsing-actual-lrp-groups")
@@ -475,7 +476,9 @@ func parseActualLRPGroups(logger lager.Logger, node *etcd.Node, filter models.Ac
 		group := &models.ActualLRPGroup{}
 		for _, instanceNode := range indexNode.Nodes {
 			var lrp models.ActualLRP
-			deserializeErr := models.FromJSON([]byte(instanceNode.Value), &lrp)
+			value := db.decodeFromStorage(instanceNode.Value)
+			fmt.Println("dec: ", string(value))
+			deserializeErr := models.FromJSON(value, &lrp)
 			if deserializeErr != nil {
 				logger.Error("failed-parsing-actual-lrp-groups", deserializeErr, lager.Data{"key": instanceNode.Key})
 				return &models.ActualLRPGroups{}, models.ErrDeserializeJSON
