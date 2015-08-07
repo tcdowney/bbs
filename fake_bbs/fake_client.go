@@ -113,14 +113,14 @@ type FakeClient struct {
 	retireActualLRPReturns struct {
 		result1 error
 	}
-	EvacuateClaimedActualLRPStub        func(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (models.ContainerRetainment, error)
+	EvacuateClaimedActualLRPStub        func(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (bool, error)
 	evacuateClaimedActualLRPMutex       sync.RWMutex
 	evacuateClaimedActualLRPArgsForCall []struct {
 		arg1 *models.ActualLRPKey
 		arg2 *models.ActualLRPInstanceKey
 	}
 	evacuateClaimedActualLRPReturns struct {
-		result1 models.ContainerRetainment
+		result1 bool
 		result2 error
 	}
 	RemoveEvacuatingActualLRPStub        func(*models.ActualLRPKey, *models.ActualLRPInstanceKey) error
@@ -573,7 +573,7 @@ func (fake *FakeClient) RetireActualLRPReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeClient) EvacuateClaimedActualLRP(arg1 *models.ActualLRPKey, arg2 *models.ActualLRPInstanceKey) (models.ContainerRetainment, error) {
+func (fake *FakeClient) EvacuateClaimedActualLRP(arg1 *models.ActualLRPKey, arg2 *models.ActualLRPInstanceKey) (bool, error) {
 	fake.evacuateClaimedActualLRPMutex.Lock()
 	fake.evacuateClaimedActualLRPArgsForCall = append(fake.evacuateClaimedActualLRPArgsForCall, struct {
 		arg1 *models.ActualLRPKey
@@ -599,10 +599,10 @@ func (fake *FakeClient) EvacuateClaimedActualLRPArgsForCall(i int) (*models.Actu
 	return fake.evacuateClaimedActualLRPArgsForCall[i].arg1, fake.evacuateClaimedActualLRPArgsForCall[i].arg2
 }
 
-func (fake *FakeClient) EvacuateClaimedActualLRPReturns(result1 models.ContainerRetainment, result2 error) {
+func (fake *FakeClient) EvacuateClaimedActualLRPReturns(result1 bool, result2 error) {
 	fake.EvacuateClaimedActualLRPStub = nil
 	fake.evacuateClaimedActualLRPReturns = struct {
-		result1 models.ContainerRetainment
+		result1 bool
 		result2 error
 	}{result1, result2}
 }

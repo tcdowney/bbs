@@ -393,8 +393,8 @@ var _ = Describe("ActualLRP API", func() {
 
 	Describe("EvacuateClaimedActualLRP", func() {
 		var (
-			containerRetainment models.ContainerRetainment
-			evacuateErr         error
+			keepContainer bool
+			evacuateErr   error
 
 			actualLRPKey         models.ActualLRPKey
 			actualLRPInstanceKey models.ActualLRPInstanceKey
@@ -413,7 +413,11 @@ var _ = Describe("ActualLRP API", func() {
 		})
 
 		JustBeforeEach(func() {
-			containerRetainment, evacuateErr = client.EvacuateClaimedActualLRP(&actualLRPKey, &actualLRPInstanceKey)
+			groups, err := client.ActualLRPGroupsByProcessGuid(actualLRPKey.ProcessGuid)
+			Expect(err).NotTo(HaveOccurred())
+			println(groups)
+
+			keepContainer, evacuateErr = client.EvacuateClaimedActualLRP(&actualLRPKey, &actualLRPInstanceKey)
 		})
 
 		It("removes the claimed actual_lrp without evacuating", func() {
