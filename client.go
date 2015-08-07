@@ -42,9 +42,9 @@ type Client interface {
 	RetireActualLRP(key *models.ActualLRPKey) error
 
 	EvacuateClaimedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (bool, error)
-	// EvacuateRunningActualLRP(models.ActualLRPKey, models.ActualLRPInstanceKey, models.ActualLRPNetInfo, uint64) (models.ContainerRetainment, error)
-	// EvacuateStoppedActualLRP(models.ActualLRPKey, models.ActualLRPInstanceKey) (models.ContainerRetainment, error)
-	// EvacuateCrashedActualLRP(models.ActualLRPKey, models.ActualLRPInstanceKey, string) (models.ContainerRetainment, error)
+	EvacuateRunningActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey, *models.ActualLRPNetInfo, uint64) (bool, error)
+	EvacuateStoppedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (bool, error)
+	EvacuateCrashedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey, string) (bool, error)
 	RemoveEvacuatingActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) error
 
 	DesiredLRPs(models.DesiredLRPFilter) ([]*models.DesiredLRP, error)
@@ -185,6 +185,55 @@ func (c *client) EvacuateClaimedActualLRP(key *models.ActualLRPKey, instanceKey 
 
 	var response models.EvacuationResponse
 	err := c.doRequest(EvacuateClaimedActualLRPRoute, nil, nil, &request, &response)
+	if err != nil {
+		return false, err
+	}
+
+	return response.KeepContainer, nil
+}
+
+func (c *client) EvacuateCrashedActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, errorMessage string) (bool, error) {
+
+	request := models.EvacuateCrashedActualLRPRequest{
+		ActualLrpKey:         key,
+		ActualLrpInstanceKey: instanceKey,
+		ErrorMessage:         errorMessage,
+	}
+
+	var response models.EvacuationResponse
+	err := c.doRequest(EvacuateCrashedActualLRPRoute, nil, nil, &request, &response)
+	if err != nil {
+		return false, err
+	}
+
+	return response.KeepContainer, nil
+}
+
+func (c *client) EvacuateStoppedActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) (bool, error) {
+	request := models.EvacuateStoppedActualLRPRequest{
+		ActualLrpKey:         key,
+		ActualLrpInstanceKey: instanceKey,
+	}
+
+	var response models.EvacuationResponse
+	err := c.doRequest(EvacuateStoppedActualLRPRoute, nil, nil, &request, &response)
+	if err != nil {
+		return false, err
+	}
+
+	return response.KeepContainer, nil
+}
+
+func (c *client) EvacuateRunningActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, netInfo *models.ActualLRPNetInfo, ttl uint64) (bool, error) {
+	request := models.EvacuateRunningActualLRPRequest{
+		ActualLrpKey:         key,
+		ActualLrpInstanceKey: instanceKey,
+		ActualLrpNetInfo:     netInfo,
+		Ttl:                  ttl,
+	}
+
+	var response models.EvacuationResponse
+	err := c.doRequest(EvacuateRunningActualLRPRoute, nil, nil, &request, &response)
 	if err != nil {
 		return false, err
 	}

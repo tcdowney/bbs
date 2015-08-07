@@ -77,14 +77,80 @@ func (h *EvacuationHandler) RemoveEvacuatingActualLRP(w http.ResponseWriter, req
 func (h *EvacuationHandler) EvacuateClaimedActualLRP(w http.ResponseWriter, req *http.Request) {
 	logger := h.logger.Session("evacuate-claimed-actual-lrp")
 
-	request := &models.RemoveEvacuatingActualLRPRequest{}
+	request := &models.EvacuateClaimedActualLRPRequest{}
 	if !parseRequest(logger, w, req, request) {
 		return
 	}
 
-	bbsErr := h.db.RemoveEvacuatingActualLRP(logger, request)
+	_, bbsErr := h.db.EvacuateClaimedActualLRP(logger, request)
 	if bbsErr != nil {
-		logger.Error("failed-to-remove-evacuating-actual-lrp", bbsErr)
+		logger.Error("failed-to-evacuate-claimed-actual-lrp", bbsErr)
+		if bbsErr.Equal(models.ErrResourceNotFound) {
+			writeNotFoundResponse(w, bbsErr)
+		} else {
+			writeInternalServerErrorResponse(w, bbsErr)
+		}
+		return
+	}
+
+	writeEmptyResponse(w, http.StatusNoContent)
+}
+
+func (h *EvacuationHandler) EvacuateCrashedActualLRP(w http.ResponseWriter, req *http.Request) {
+	logger := h.logger.Session("evacuate-crashed-actual-lrp")
+
+	request := &models.EvacuateCrashedActualLRPRequest{}
+	if !parseRequest(logger, w, req, request) {
+		return
+	}
+
+	_, bbsErr := h.db.EvacuateCrashedActualLRP(logger, request)
+	if bbsErr != nil {
+		logger.Error("failed-to-evacuate-crashed-actual-lrp", bbsErr)
+		if bbsErr.Equal(models.ErrResourceNotFound) {
+			writeNotFoundResponse(w, bbsErr)
+		} else {
+			writeInternalServerErrorResponse(w, bbsErr)
+		}
+		return
+	}
+
+	writeEmptyResponse(w, http.StatusNoContent)
+}
+
+func (h *EvacuationHandler) EvacuateRunningActualLRP(w http.ResponseWriter, req *http.Request) {
+	logger := h.logger.Session("evacuate-running-actual-lrp")
+
+	request := &models.EvacuateRunningActualLRPRequest{}
+	if !parseRequest(logger, w, req, request) {
+		return
+	}
+
+	_, bbsErr := h.db.EvacuateRunningActualLRP(logger, request)
+	if bbsErr != nil {
+		logger.Error("failed-to-evacuate-running-actual-lrp", bbsErr)
+		if bbsErr.Equal(models.ErrResourceNotFound) {
+			writeNotFoundResponse(w, bbsErr)
+		} else {
+			writeInternalServerErrorResponse(w, bbsErr)
+		}
+		return
+	}
+
+	writeEmptyResponse(w, http.StatusNoContent)
+}
+
+func (h *EvacuationHandler) EvacuateStoppedActualLRP(w http.ResponseWriter, req *http.Request) {
+	logger := h.logger.Session("evacuate-stopped-actual-lrp")
+
+	request := &models.EvacuateStoppedActualLRPRequest{}
+	if !parseRequest(logger, w, req, request) {
+		return
+	}
+
+	_, bbsErr := h.db.EvacuateStoppedActualLRP(logger, request)
+	if bbsErr != nil {
+		logger.Error("failed-to-evacuate-stopped-actual-lrp", bbsErr)
 		if bbsErr.Equal(models.ErrResourceNotFound) {
 			writeNotFoundResponse(w, bbsErr)
 		} else {

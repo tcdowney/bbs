@@ -413,10 +413,6 @@ var _ = Describe("ActualLRP API", func() {
 		})
 
 		JustBeforeEach(func() {
-			groups, err := client.ActualLRPGroupsByProcessGuid(actualLRPKey.ProcessGuid)
-			Expect(err).NotTo(HaveOccurred())
-			println(groups)
-
 			keepContainer, evacuateErr = client.EvacuateClaimedActualLRP(&actualLRPKey, &actualLRPInstanceKey)
 		})
 
