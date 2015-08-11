@@ -125,6 +125,9 @@ var _ = Describe("ActualLRP API", func() {
 			Since:                time.Now().UnixNano(),
 		}
 
+		etcdHelper.CreateValidDesiredLRP(baseLRP.ActualLRPKey.ProcessGuid)
+		etcdHelper.CreateValidDesiredLRP(otherLRP.ActualLRPKey.ProcessGuid)
+
 		etcdHelper.SetRawActualLRP(baseLRP)
 		etcdHelper.SetRawActualLRP(otherLRP)
 		etcdHelper.SetRawEvacuatingActualLRP(evacuatingLRP, noExpirationTTL)
@@ -424,36 +427,57 @@ var _ = Describe("ActualLRP API", func() {
 		})
 	})
 
-	// Describe("EvacuateRunningActualLRP", func() {
-	// 	var (
-	// 		containerRetainment models.ContainerRetainment
-	// 		evacuateErr         error
-	// 	)
-	//
-	// 	JustBeforeEach(func() {
-	// 		containerRetainment, evacuateErr = client.EvacuateRunningActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey)
-	// 	})
-	// })
+	Describe("EvacuateRunningActualLRP", func() {
+		var (
+			keepContainer bool
+			evacuateErr   error
+		)
+
+		JustBeforeEach(func() {
+			keepContainer, evacuateErr = client.EvacuateRunningActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey, &baseLRP.ActualLRPNetInfo, uint64(10000))
+		})
+
+		It("runs the evacuating ActualLRP and unclaims the instance ActualLRP", func() {
+			Expect(evacuateErr).NotTo(HaveOccurred())
+
+			actualLRPGroup, err := client.ActualLRPGroupByProcessGuidAndIndex(baseLRP.ActualLRPKey.ProcessGuid, int(baseLRP.ActualLRPKey.Index))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(actualLRPGroup.Evacuating).NotTo(BeNil())
+			Expect(actualLRPGroup.Instance).NotTo(BeNil())
+			Expect(actualLRPGroup.Evacuating.State).To(Equal(models.ActualLRPStateRunning))
+			Expect(actualLRPGroup.Instance.State).To(Equal(models.ActualLRPStateUnclaimed))
+		})
+	})
 
 	// Describe("EvacuateStoppedActualLRP", func() {
 	// 	var (
-	// 		containerRetainment models.ContainerRetainment
-	// 		evacuateErr         error
+	// 		keepContainer bool
+	// 		evacuateErr   error
 	// 	)
-	//
+
 	// 	JustBeforeEach(func() {
-	// 		containerRetainment, evacuateErr = client.EvacuateStoppedActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey)
+	// 		keepContainer, evacuateErr = client.EvacuateStoppedActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey)
 	// 	})
 	// })
-	//
-	// Describe("EvacuateCrashedActualLRP", func() {
-	// 	var (
-	// 		containerRetainment models.ContainerRetainment
-	// 		evacuateErr         error
-	// 	)
-	//
-	// 	JustBeforeEach(func() {
-	// 		containerRetainment, evacuateErr = client.EvacuateCrashedActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey, "some-reason")
-	// 	})
-	// })
+
+	Describe("EvacuateCrashedActualLRP", func() {
+		var (
+			keepContainer bool
+			evacuateErr   error
+		)
+
+		JustBeforeEach(func() {
+			keepContainer, evacuateErr = client.EvacuateCrashedActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey, "some-reason")
+		})
+
+		FIt("removes the crashed evacuating LRP and unclaims the instance ActualLRP", func() {
+			Expect(evacuateErr).NotTo(HaveOccurred())
+
+			actualLRPGroup, err := client.ActualLRPGroupByProcessGuidAndIndex(baseLRP.ActualLRPKey.ProcessGuid, int(baseLRP.ActualLRPKey.Index))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(actualLRPGroup.Evacuating).To(BeNil())
+			Expect(actualLRPGroup.Instance).NotTo(BeNil())
+			Expect(actualLRPGroup.Instance.State).To(Equal(models.ActualLRPStateUnclaimed))
+		})
+	})
 })

@@ -150,9 +150,12 @@ func (db *ETCDDB) EvacuateCrashedActualLRP(logger lager.Logger, request *models.
 	logger = logger.Session("evacuating-crashed", lager.Data{"request": request})
 	logger.Info("started")
 
-	_ = db.removeEvacuatingActualLRP(logger, request.ActualLrpKey, request.ActualLrpInstanceKey)
+	err := db.removeEvacuatingActualLRP(logger, request.ActualLrpKey, request.ActualLrpInstanceKey)
+	if err != nil {
+		logger.Debug("failed-to-remove-evacuating-actual-lrp", lager.Data{"error": err})
+	}
 
-	err := db.CrashActualLRP(logger, &models.CrashActualLRPRequest{
+	err = db.CrashActualLRP(logger, &models.CrashActualLRPRequest{
 		ActualLrpKey:         request.ActualLrpKey,
 		ActualLrpInstanceKey: request.ActualLrpInstanceKey,
 		ErrorMessage:         request.ErrorMessage,
@@ -177,6 +180,7 @@ func (db *ETCDDB) removeEvacuatingActualLRP(logger lager.Logger, lrpKey *models.
 	var lrp *models.ActualLRP
 	processGuid := lrpKey.ProcessGuid
 	index := lrpKey.Index
+	logger = logger.Session("removing-evacuating", lager.Data{"process_guid": processGuid, "index": index})
 
 	lrp, prevIndex, err = db.rawEvacuatingActuaLLRPByProcessGuidAndIndex(logger, processGuid, index)
 	if err == models.ErrResourceNotFound {

@@ -282,6 +282,7 @@ func (db *ETCDDB) CrashActualLRP(logger lager.Logger, request *models.CrashActua
 	key := request.ActualLrpKey
 	instanceKey := request.ActualLrpInstanceKey
 	errorMessage := request.ErrorMessage
+	logger = logger.Session("crashing", lager.Data{"request": request})
 	logger.Info("starting")
 
 	lrp, prevIndex, bbsErr := db.rawActuaLLRPByProcessGuidAndIndex(logger, key.ProcessGuid, key.Index)
@@ -309,6 +310,7 @@ func (db *ETCDDB) CrashActualLRP(logger lager.Logger, request *models.CrashActua
 	if lrp.State == models.ActualLRPStateUnclaimed || lrp.State == models.ActualLRPStateCrashed ||
 		((lrp.State == models.ActualLRPStateClaimed || lrp.State == models.ActualLRPStateRunning) &&
 			!lrp.ActualLRPInstanceKey.Equal(instanceKey)) {
+		println("running here: ", lrp.ActualLRPInstanceKey.Equal(instanceKey))
 		return models.ErrActualLRPCannotBeCrashed
 	}
 
