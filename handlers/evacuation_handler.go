@@ -82,18 +82,12 @@ func (h *EvacuationHandler) EvacuateClaimedActualLRP(w http.ResponseWriter, req 
 		return
 	}
 
-	_, bbsErr := h.db.EvacuateClaimedActualLRP(logger, request)
-	if bbsErr != nil {
-		logger.Error("failed-to-evacuate-claimed-actual-lrp", bbsErr)
-		if bbsErr.Equal(models.ErrResourceNotFound) {
-			writeNotFoundResponse(w, bbsErr)
-		} else {
-			writeInternalServerErrorResponse(w, bbsErr)
-		}
-		return
-	}
+	keepContainer, bbsErr := h.db.EvacuateClaimedActualLRP(logger, request)
 
-	writeEmptyResponse(w, http.StatusNoContent)
+	writeProtoResponse(w, http.StatusOK, &models.EvacuationResponse{
+		KeepContainer: keepContainer,
+		Error:         bbsErr,
+	})
 }
 
 func (h *EvacuationHandler) EvacuateCrashedActualLRP(w http.ResponseWriter, req *http.Request) {
@@ -104,18 +98,12 @@ func (h *EvacuationHandler) EvacuateCrashedActualLRP(w http.ResponseWriter, req 
 		return
 	}
 
-	_, bbsErr := h.db.EvacuateCrashedActualLRP(logger, request)
-	if bbsErr != nil {
-		logger.Error("failed-to-evacuate-crashed-actual-lrp", bbsErr)
-		if bbsErr.Equal(models.ErrResourceNotFound) {
-			writeNotFoundResponse(w, bbsErr)
-		} else {
-			writeInternalServerErrorResponse(w, bbsErr)
-		}
-		return
-	}
+	keepContainer, bbsErr := h.db.EvacuateCrashedActualLRP(logger, request)
 
-	writeEmptyResponse(w, http.StatusNoContent)
+	writeProtoResponse(w, http.StatusOK, &models.EvacuationResponse{
+		KeepContainer: keepContainer,
+		Error:         bbsErr,
+	})
 }
 
 func (h *EvacuationHandler) EvacuateRunningActualLRP(w http.ResponseWriter, req *http.Request) {
@@ -142,16 +130,10 @@ func (h *EvacuationHandler) EvacuateStoppedActualLRP(w http.ResponseWriter, req 
 		return
 	}
 
-	_, bbsErr := h.db.EvacuateStoppedActualLRP(logger, request)
-	if bbsErr != nil {
-		logger.Error("failed-to-evacuate-stopped-actual-lrp", bbsErr)
-		if bbsErr.Equal(models.ErrResourceNotFound) {
-			writeNotFoundResponse(w, bbsErr)
-		} else {
-			writeInternalServerErrorResponse(w, bbsErr)
-		}
-		return
-	}
+	keepContainer, bbsErr := h.db.EvacuateStoppedActualLRP(logger, request)
 
-	writeEmptyResponse(w, http.StatusNoContent)
+	writeProtoResponse(w, http.StatusOK, &models.EvacuationResponse{
+		KeepContainer: keepContainer,
+		Error:         bbsErr,
+	})
 }

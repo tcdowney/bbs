@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/bbs/models"
-	"github.com/cloudfoundry-incubator/bbs/models/internal/model_helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -374,107 +373,6 @@ var _ = Describe("ActualLRP API", func() {
 			_, err := client.ActualLRPGroupByProcessGuidAndIndex(otherProcessGuid, otherIndex)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(Equal(models.ErrResourceNotFound))
-		})
-	})
-
-	Describe("POST /v1/evacuating_actual_lrps/remove", func() {
-		var (
-			removeErr error
-		)
-
-		JustBeforeEach(func() {
-			removeErr = client.RemoveEvacuatingActualLRP(&baseLRP.ActualLRPKey, &evacuatingLRPInstanceKey)
-		})
-
-		It("removes the evacuating actual_lrp", func() {
-			Expect(removeErr).NotTo(HaveOccurred())
-
-			group, err := client.ActualLRPGroupByProcessGuidAndIndex(baseProcessGuid, baseIndex)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(group.Evacuating).To(BeNil())
-		})
-	})
-
-	Describe("EvacuateClaimedActualLRP", func() {
-		var actualLRPKey models.ActualLRPKey
-		var actualLRPInstanceKey models.ActualLRPInstanceKey
-
-		BeforeEach(func() {
-			actualLRPKey = models.NewActualLRPKey("some-process-guid", 42, "some-domain")
-			actualLRPInstanceKey = models.NewActualLRPInstanceKey("some-instance-guid", cellID)
-
-			etcdHelper.SetRawActualLRP(&models.ActualLRP{
-				ActualLRPKey:         actualLRPKey,
-				ActualLRPInstanceKey: actualLRPInstanceKey,
-				State:                models.ActualLRPStateClaimed,
-				Since:                time.Now().UnixNano(),
-			})
-		})
-
-		It("removes the claimed actual_lrp without evacuating", func() {
-			keepContainer, evacuateErr := client.EvacuateClaimedActualLRP(&actualLRPKey, &actualLRPInstanceKey)
-			Expect(keepContainer).To(BeTrue())
-			Expect(evacuateErr).NotTo(HaveOccurred())
-
-			_, err := client.ActualLRPGroupByProcessGuidAndIndex(actualLRPKey.ProcessGuid, int(actualLRPKey.Index))
-			Expect(err).To(Equal(models.ErrResourceNotFound))
-		})
-	})
-
-	Describe("EvacuateRunningActualLRP", func() {
-		var actual *models.ActualLRP
-
-		BeforeEach(func() {
-			actual = model_helpers.NewValidActualLRP("some-process-guid", 1)
-			actual.State = models.ActualLRPStateRunning
-			etcdHelper.SetRawActualLRP(actual)
-			etcdHelper.CreateValidDesiredLRP(actual.ProcessGuid)
-		})
-
-		It("runs the evacuating ActualLRP and unclaims the instance ActualLRP", func() {
-			keepContainer, err := client.EvacuateRunningActualLRP(&actual.ActualLRPKey, &actual.ActualLRPInstanceKey, &actual.ActualLRPNetInfo, uint64(10000))
-			Expect(keepContainer).To(BeTrue())
-			Expect(err).NotTo(HaveOccurred())
-
-			actualLRPGroup, err := client.ActualLRPGroupByProcessGuidAndIndex(actual.ProcessGuid, int(actual.Index))
-			Expect(err).NotTo(HaveOccurred())
-			Expect(actualLRPGroup.Evacuating).NotTo(BeNil())
-			Expect(actualLRPGroup.Instance).NotTo(BeNil())
-			Expect(actualLRPGroup.Evacuating.State).To(Equal(models.ActualLRPStateRunning))
-			Expect(actualLRPGroup.Instance.State).To(Equal(models.ActualLRPStateUnclaimed))
-		})
-	})
-
-	// Describe("EvacuateStoppedActualLRP", func() {
-	// 	var (
-	// 		keepContainer bool
-	// 		evacuateErr   error
-	// 	)
-
-	// 	JustBeforeEach(func() {
-	// 		keepContainer, evacuateErr = client.EvacuateStoppedActualLRP(&baseLRP.ActualLRPKey, &baseLRP.ActualLRPInstanceKey)
-	// 	})
-	// })
-
-	Describe("EvacuateCrashedActualLRP", func() {
-		var actual *models.ActualLRP
-
-		BeforeEach(func() {
-			actual = model_helpers.NewValidActualLRP("some-process-guid", 1)
-			actual.State = models.ActualLRPStateRunning
-			etcdHelper.SetRawActualLRP(actual)
-			etcdHelper.CreateValidDesiredLRP(actual.ProcessGuid)
-		})
-		It("removes the crashed evacuating LRP and unclaims the instance ActualLRP", func() {
-			keepContainer, evacuateErr := client.EvacuateCrashedActualLRP(&actual.ActualLRPKey, &actual.ActualLRPInstanceKey, "some-reason")
-			Expect(keepContainer).Should(BeFalse())
-			Expect(evacuateErr).NotTo(HaveOccurred())
-
-			actualLRPGroup, err := client.ActualLRPGroupByProcessGuidAndIndex(actual.ProcessGuid, int(actual.Index))
-			Expect(err).NotTo(HaveOccurred())
-			Expect(actualLRPGroup.Evacuating).To(BeNil())
-			Expect(actualLRPGroup.Instance).ToNot(BeNil())
-			Expect(actualLRPGroup.Instance.State).To(Equal(models.ActualLRPStateUnclaimed))
 		})
 	})
 })

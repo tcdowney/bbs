@@ -8,10 +8,10 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-func (db *ETCDDB) EvacuateClaimedActualLRP(logger lager.Logger, request *models.EvacuateClaimedActualLRPRequest) (success bool, modelErr *models.Error) {
+func (db *ETCDDB) EvacuateClaimedActualLRP(logger lager.Logger, request *models.EvacuateClaimedActualLRPRequest) (keepContainer bool, modelErr *models.Error) {
 	logger = logger.Session("evacuate-claimed", lager.Data{"request": request})
 	logger.Info("started")
-	defer func() { logger.Info("finished", lager.Data{"success": success, "err": modelErr}) }()
+	defer func() { logger.Info("finished", lager.Data{"keepContainer": keepContainer, "err": modelErr}) }()
 
 	_ = db.removeEvacuatingActualLRP(logger, request.ActualLrpKey, request.ActualLrpInstanceKey)
 
