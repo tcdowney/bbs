@@ -16,12 +16,6 @@ import (
 
 const DataSchemaRoot = "/v1/"
 
-const (
-	ETCDErrKeyNotFound  = 100
-	ETCDErrKeyExists    = 105
-	ETCDErrIndexCleared = 401
-)
-
 const maxActualGroupGetterWorkPoolSize = 50
 const ActualLRPSchemaRoot = DataSchemaRoot + "actual"
 const ActualLRPInstanceKey = "instance"
@@ -96,15 +90,23 @@ func (db *ETCDDB) fetchRaw(logger lager.Logger, key string) (*etcd.Node, *models
 	return response.Node, nil
 }
 
+const (
+	ETCDErrKeyNotFound  = 100
+	ETCDErrKeyExists    = 105
+	ETCDErrIndexCleared = 401
+)
+
 func ErrorFromEtcdError(logger lager.Logger, err error) *models.Error {
+	logger = logger.Session("etcd-error", lager.Data{"error": err})
 	switch etcdErrCode(err) {
 	case ETCDErrKeyNotFound:
-		logger.Debug("no-node-to-fetch")
+		logger.Debug("resource-not-found")
 		return models.ErrResourceNotFound
 	case ETCDErrKeyExists:
+		logger.Debug("resource-exits")
 		return models.ErrResourceExists
 	default:
-		logger.Error("failed-fetching-from-etcd", err)
+		logger.Error("unknown-error", err)
 		return models.ErrUnknownError
 	}
 }

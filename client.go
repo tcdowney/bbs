@@ -235,10 +235,10 @@ func (c *client) EvacuateRunningActualLRP(key *models.ActualLRPKey, instanceKey 
 	var response models.EvacuationResponse
 	err := c.doRequest(EvacuateRunningActualLRPRoute, nil, nil, &request, &response)
 	if err != nil {
-		return false, err
+		return true, err
 	}
 
-	return response.KeepContainer, nil
+	return response.KeepContainer, response.Error
 }
 
 func (c *client) RemoveEvacuatingActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) error {

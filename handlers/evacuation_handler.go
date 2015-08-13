@@ -126,18 +126,12 @@ func (h *EvacuationHandler) EvacuateRunningActualLRP(w http.ResponseWriter, req 
 		return
 	}
 
-	_, bbsErr := h.db.EvacuateRunningActualLRP(logger, request)
-	if bbsErr != nil {
-		logger.Error("failed-to-evacuate-running-actual-lrp", bbsErr)
-		if bbsErr.Equal(models.ErrResourceNotFound) {
-			writeNotFoundResponse(w, bbsErr)
-		} else {
-			writeInternalServerErrorResponse(w, bbsErr)
-		}
-		return
-	}
+	keepContainer, bbsErr := h.db.EvacuateRunningActualLRP(logger, request)
 
-	writeEmptyResponse(w, http.StatusNoContent)
+	writeProtoResponse(w, http.StatusOK, &models.EvacuationResponse{
+		KeepContainer: keepContainer,
+		Error:         bbsErr,
+	})
 }
 
 func (h *EvacuationHandler) EvacuateStoppedActualLRP(w http.ResponseWriter, req *http.Request) {

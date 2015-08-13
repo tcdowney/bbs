@@ -4,11 +4,13 @@ package models;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "actual_lrp.proto";
+import "error.proto";
 
 option (gogoproto.equal_all) = false;
 
 message EvacuationResponse {
-  optional bool keep_container = 1; 
+  optional bool keep_container = 1;
+  optional Error error = 2;
 }
 
 message EvacuateClaimedActualLRPRequest {
