@@ -104,7 +104,7 @@ var _ = BeforeEach(func() {
 	fakeTaskCBFactory = new(fakeHelpers.FakeTaskCallbackFactory)
 	fakeTaskCBFactory.TaskCallbackWorkReturns(func() {})
 
-	etcdDB = etcd.NewETCD(etcdClient, auctioneerClient, cellClient, receptorURL, cellDB, clock, taskCBWorkPool, fakeTaskCBFactory.TaskCallbackWork)
+	etcdDB = etcd.NewETCD(etcdClient, auctioneerClient, cellClient, cellDB, clock, taskCBWorkPool, fakeTaskCBFactory.TaskCallbackWork)
 })
 
 func registerCell(cell models.CellPresence) {
