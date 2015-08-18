@@ -127,12 +127,6 @@ var _ = Describe("Convergence of Tasks", func() {
 						})
 					})
 				})
-
-				Context("when unable to fetch the auctioneer address", func() {
-					It("logs an error", func() {
-						Expect(logger.TestSink.LogMessages()).To(ContainElement("test.converge-tasks.failed-to-request-auctions-for-pending-tasks"))
-					})
-				})
 			})
 
 			Context("when the Task has been pending for longer than the expirePendingTasksDuration", func() {

@@ -7,7 +7,6 @@ import (
 	"github.com/cloudfoundry-incubator/bbs/models"
 	"github.com/cloudfoundry-incubator/runtime-schema/metric"
 	"github.com/cloudfoundry/gunk/workpool"
-	"github.com/cloudfoundry/storeadapter"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -236,13 +235,9 @@ func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask,
 			continue
 		}
 
-		newStoreNode := storeadapter.StoreNode{
-			Key:   TaskSchemaPathByGuid(task.TaskGuid),
-			Value: value,
-		}
 		index := taskToCAS.OldIndex
 		works = append(works, func() {
-			_, err := db.client.CompareAndSwap(newStoreNode.Key, string(newStoreNode.Value), newStoreNode.TTL, "", index)
+			_, err := db.client.CompareAndSwap(TaskSchemaPathByGuid(task.TaskGuid), string(value), NO_TTL, "", index)
 			if err != nil {
 				taskLog.Error("failed-to-compare-and-swap", err, lager.Data{
 					"task-guid": task.TaskGuid,

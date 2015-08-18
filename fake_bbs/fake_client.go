@@ -8,6 +8,7 @@ import (
 	"github.com/cloudfoundry-incubator/bbs"
 	"github.com/cloudfoundry-incubator/bbs/events"
 	"github.com/cloudfoundry-incubator/bbs/models"
+	"github.com/pivotal-golang/lager"
 )
 
 type FakeClient struct {
@@ -235,6 +236,14 @@ type FakeClient struct {
 	subscribeToEventsReturns struct {
 		result1 events.EventSource
 		result2 error
+	}
+	ConvergeTasksStub        func(logger lager.Logger, kickTaskDuration, expirePendingTaskDuration, expireCompletedTaskDuration time.Duration)
+	convergeTasksMutex       sync.RWMutex
+	convergeTasksArgsForCall []struct {
+		logger                      lager.Logger
+		kickTaskDuration            time.Duration
+		expirePendingTaskDuration   time.Duration
+		expireCompletedTaskDuration time.Duration
 	}
 	StartTaskStub        func(taskGuid string, cellID string) (bool, error)
 	startTaskMutex       sync.RWMutex
@@ -1053,6 +1062,32 @@ func (fake *FakeClient) SubscribeToEventsReturns(result1 events.EventSource, res
 		result1 events.EventSource
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeClient) ConvergeTasks(logger lager.Logger, kickTaskDuration time.Duration, expirePendingTaskDuration time.Duration, expireCompletedTaskDuration time.Duration) {
+	fake.convergeTasksMutex.Lock()
+	fake.convergeTasksArgsForCall = append(fake.convergeTasksArgsForCall, struct {
+		logger                      lager.Logger
+		kickTaskDuration            time.Duration
+		expirePendingTaskDuration   time.Duration
+		expireCompletedTaskDuration time.Duration
+	}{logger, kickTaskDuration, expirePendingTaskDuration, expireCompletedTaskDuration})
+	fake.convergeTasksMutex.Unlock()
+	if fake.ConvergeTasksStub != nil {
+		fake.ConvergeTasksStub(logger, kickTaskDuration, expirePendingTaskDuration, expireCompletedTaskDuration)
+	}
+}
+
+func (fake *FakeClient) ConvergeTasksCallCount() int {
+	fake.convergeTasksMutex.RLock()
+	defer fake.convergeTasksMutex.RUnlock()
+	return len(fake.convergeTasksArgsForCall)
+}
+
+func (fake *FakeClient) ConvergeTasksArgsForCall(i int) (lager.Logger, time.Duration, time.Duration, time.Duration) {
+	fake.convergeTasksMutex.RLock()
+	defer fake.convergeTasksMutex.RUnlock()
+	return fake.convergeTasksArgsForCall[i].logger, fake.convergeTasksArgsForCall[i].kickTaskDuration, fake.convergeTasksArgsForCall[i].expirePendingTaskDuration, fake.convergeTasksArgsForCall[i].expireCompletedTaskDuration
 }
 
 func (fake *FakeClient) StartTask(taskGuid string, cellID string) (bool, error) {
