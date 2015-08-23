@@ -27,6 +27,19 @@ func PreloadedRootFS(stack string) string {
 	}).String()
 }
 
+func (desired *DesiredLRP) ApplyUpdate(update *DesiredLRPUpdate) *DesiredLRP {
+	if update.Instances != nil {
+		desired.Instances = *update.Instances
+	}
+	if update.Routes != nil {
+		desired.Routes = update.Routes
+	}
+	if update.Annotation != nil {
+		desired.Annotation = *update.Annotation
+	}
+	return desired
+}
+
 func (desired DesiredLRP) Validate() error {
 	var validationError ValidationError
 
@@ -98,6 +111,35 @@ func (desired DesiredLRP) Validate() error {
 		if err != nil {
 			validationError = validationError.Append(ErrInvalidField{"egress_rules"})
 			validationError = validationError.Append(err)
+		}
+	}
+
+	if !validationError.Empty() {
+		return validationError
+	}
+
+	return nil
+}
+
+func (desired *DesiredLRPUpdate) Validate() error {
+	var validationError ValidationError
+
+	if desired.GetInstances() < 0 {
+		validationError = validationError.Append(ErrInvalidField{"instances"})
+	}
+
+	if len(desired.GetAnnotation()) > maximumAnnotationLength {
+		validationError = validationError.Append(ErrInvalidField{"annotation"})
+	}
+
+	totalRoutesLength := 0
+	if desired.Routes != nil {
+		for _, value := range *desired.Routes {
+			totalRoutesLength += len(*value)
+			if totalRoutesLength > maximumRouteLength {
+				validationError = validationError.Append(ErrInvalidField{"routes"})
+				break
+			}
 		}
 	}
 
