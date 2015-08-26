@@ -5,6 +5,7 @@ import (
 	"path"
 
 	"github.com/cloudfoundry-incubator/bbs/models"
+	etcdclient "github.com/coreos/go-etcd/etcd"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -37,12 +38,11 @@ func (db *ETCDDB) Tasks(logger lager.Logger, filter models.TaskFilter) ([]*model
 
 	for _, node := range root.Nodes {
 		node := node
+		task := &models.Task{}
 
-		var task models.Task
-		deserializeErr := models.FromJSON([]byte(node.Value), &task)
-		if deserializeErr != nil {
-			logger.Error("failed-parsing-task", deserializeErr, lager.Data{"key": node.Key})
-			return nil, models.ErrUnknownError
+		err := db.nodeToTask(logger, node, task)
+		if err != nil {
+			return nil, err
 		}
 
 		if filter.Domain != "" && task.Domain != filter.Domain {
@@ -51,7 +51,8 @@ func (db *ETCDDB) Tasks(logger lager.Logger, filter models.TaskFilter) ([]*model
 		if filter.CellID != "" && task.CellId != filter.CellID {
 			continue
 		}
-		tasks = append(tasks, &task)
+
+		tasks = append(tasks, task)
 	}
 
 	logger.Debug("succeeded-performing-deserialization", lager.Data{"num-tasks": len(tasks)})
@@ -71,13 +72,36 @@ func (db *ETCDDB) taskByGuidWithIndex(logger lager.Logger, taskGuid string) (*mo
 	}
 
 	var task models.Task
-	deserializeErr := models.FromJSON([]byte(node.Value), &task)
+	deserializeErr := db.nodeToTask(logger, node, &task)
 	if deserializeErr != nil {
 		logger.Error("failed-parsing-desired-task", deserializeErr)
 		return nil, 0, models.ErrDeserializeJSON
 	}
 
 	return &task, node.ModifiedIndex, nil
+}
+
+func (db *ETCDDB) nodeToTask(logger lager.Logger, node *etcdclient.Node, task *models.Task) *models.Error {
+	if db.supportsBinary() {
+		var envelope models.Envelope
+		err := envelope.Open([]byte(node.Value))
+		if err != nil {
+			return models.ErrUnknownError
+		}
+
+		err = envelope.Unmarshal(task)
+		if err != nil {
+			return models.ErrUnknownError
+		}
+	} else {
+		deserializeErr := models.FromJSON([]byte(node.Value), task)
+		if deserializeErr != nil {
+			logger.Error("failed-parsing-task", deserializeErr, lager.Data{"key": node.Key})
+			return models.ErrUnknownError
+		}
+	}
+
+	return nil
 }
 
 func (db *ETCDDB) DesireTask(logger lager.Logger, taskDef *models.TaskDefinition, taskGuid, domain string) *models.Error {
@@ -94,10 +118,21 @@ func (db *ETCDDB) DesireTask(logger lager.Logger, taskDef *models.TaskDefinition
 		UpdatedAt:      db.clock.Now().UnixNano(),
 	}
 
-	value, modelErr := models.ToJSON(task)
-	if modelErr != nil {
-		logger.Error("failed-to-json", modelErr)
-		return modelErr
+	var value []byte
+	if db.supportsBinary() {
+		v, modelErr := models.Marshal(models.V0, task)
+		if modelErr != nil {
+			logger.Error("failed-to-marshal", modelErr)
+			return modelErr
+		}
+		value = v
+	} else {
+		v, modelErr := models.ToJSON(task)
+		if modelErr != nil {
+			logger.Error("failed-to-json", modelErr)
+			return modelErr
+		}
+		value = v
 	}
 
 	logger.Debug("persisting-task")

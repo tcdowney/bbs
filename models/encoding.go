@@ -2,39 +2,86 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"reflect"
+
+	"github.com/gogo/protobuf/proto"
 )
 
-type Payload struct {
-	Version Version
-	Payload []byte
+type SerializationFormat byte
+
+const JSON SerializationFormat = 0
+const PROTO SerializationFormat = 1
+
+type Version byte
+
+const V0 Version = 0
+
+type Envelope struct {
+	SerializationFormat SerializationFormat
+	Version             Version
+	Payload             []byte
 }
 
-type Version [4]byte
+// func NewEnvelope(preferredFormat SerializationFormat) *Encoder {
+// }
 
-var (
-	V0 Version = [4]byte{'0', '0', '0', '0'}
-	V1 Version = [4]byte{'0', '0', '0', '1'}
-)
+// func (e *Encoder) Encode(payload []byte) *Envelope {
+// }
 
-func NewPayload(payload []byte) (*Payload, error) {
-	version := V0
-	if len(payload) >= len(V0) {
-		version = Version([4]byte{payload[0], payload[1], payload[2], payload[3]})
+func (e *Envelope) Open(data []byte) error {
+	if !isEncoded(data) {
+		e.SerializationFormat = JSON
+		e.Version = V0
+		e.Payload = data
+		return nil
 	}
 
-	switch version {
-	case V1:
-		return &Payload{
-			Version: version,
-			Payload: payload[4:],
-		}, nil
+	e.SerializationFormat = SerializationFormat(data[0])
+	e.Version = Version(V0)
+	e.Payload = data[2:]
+
+	return nil
+}
+
+func isEncoded(data []byte) bool {
+	if len(data) < 2 {
+		return false
+	}
+
+	switch SerializationFormat(data[0]) {
+	case JSON, PROTO:
 	default:
-		return &Payload{
-			Version: V0,
-			Payload: payload,
-		}, nil
+		return false
 	}
+
+	switch Version(data[1]) {
+	case V0:
+	default:
+		return false
+	}
+
+	return true
+}
+
+func Marshal(version Version, v ProtoValidator) ([]byte, *Error) {
+	payload, err := ToProto(v)
+	if err != nil {
+		return nil, err
+	}
+	return append([]byte{byte(PROTO), byte(version)}, payload...), nil
+}
+
+func (e *Envelope) Unmarshal(model Validator) error {
+	switch e.SerializationFormat {
+	case JSON:
+		return FromJSON(e.Payload, model)
+	case PROTO:
+		if pv, ok := model.(ProtoValidator); ok {
+			return FromProto(e.Payload, pv)
+		}
+	}
+	return errors.New("Unexpected serialization format")
 }
 
 func FromJSON(payload []byte, v Validator) error {
@@ -55,6 +102,29 @@ func ToJSON(v Validator) ([]byte, *Error) {
 	bytes, err := json.Marshal(v)
 	if err != nil {
 		return nil, NewError(InvalidJSON, err.Error())
+	}
+
+	return bytes, nil
+}
+
+func FromProto(payload []byte, v ProtoValidator) error {
+	err := proto.Unmarshal(payload, v)
+	if err != nil {
+		return err
+	}
+	return v.Validate()
+}
+
+func ToProto(v ProtoValidator) ([]byte, *Error) {
+	if !isNil(v) {
+		if err := v.Validate(); err != nil {
+			return nil, NewError(InvalidRecord, err.Error())
+		}
+	}
+
+	bytes, err := proto.Marshal(v)
+	if err != nil {
+		return nil, NewError(InvalidProtobufMessage, err.Error())
 	}
 
 	return bytes, nil

@@ -82,6 +82,10 @@ func NewETCD(
 	}
 }
 
+func (db *ETCDDB) supportsBinary() bool {
+	return db.client.SupportsBinary()
+}
+
 func (db *ETCDDB) fetchRecursiveRaw(logger lager.Logger, key string) (*etcd.Node, *models.Error) {
 	logger.Debug("fetching-recursive-from-etcd")
 	response, err := db.client.Get(key, false, true)

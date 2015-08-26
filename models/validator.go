@@ -1,9 +1,18 @@
 package models
 
-import "bytes"
+import (
+	"bytes"
+
+	"github.com/gogo/protobuf/proto"
+)
 
 type Validator interface {
 	Validate() error
+}
+
+type ProtoValidator interface {
+	Validator
+	proto.Message
 }
 
 type ValidationError []error
