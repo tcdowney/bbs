@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("TaskDB", func() {
+var _ = Describe("TaskDB", func() {
 	const (
 		taskGuid = "some-guid"
 		domain   = "some-domain"

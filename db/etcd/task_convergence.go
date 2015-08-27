@@ -94,7 +94,7 @@ func (db *ETCDDB) ConvergeTasks(
 	for _, node := range taskState.Nodes {
 		task := &models.Task{}
 
-		err := models.FromJSON([]byte(node.Value), task)
+		err := db.nodeToTask(logger, node, task)
 		if err != nil {
 			logger.Error("failed-to-unmarshal-task-json", err, lager.Data{
 				"key":   node.Key,
@@ -216,7 +216,7 @@ func demoteToCompleted(task *models.Task) *models.Task {
 	return task
 }
 
-func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask, taskLog lager.Logger) error {
+func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask, logger lager.Logger) error {
 	if len(tasksToCAS) == 0 {
 		return nil
 	}
@@ -226,9 +226,9 @@ func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask,
 	for _, taskToCAS := range tasksToCAS {
 		task := taskToCAS.NewTask
 		task.UpdatedAt = db.clock.Now().UnixNano()
-		value, err := models.ToJSON(task)
+		value, err := db.serializeTask(logger, task)
 		if err != nil {
-			taskLog.Error("failed-to-marshal", err, lager.Data{
+			logger.Error("failed-to-marshal", err, lager.Data{
 				"task-guid": task.TaskGuid,
 			})
 			continue
@@ -238,7 +238,7 @@ func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask,
 		works = append(works, func() {
 			_, err := db.client.CompareAndSwap(TaskSchemaPathByGuid(task.TaskGuid), value, NO_TTL, index)
 			if err != nil {
-				taskLog.Error("failed-to-compare-and-swap", err, lager.Data{
+				logger.Error("failed-to-compare-and-swap", err, lager.Data{
 					"task-guid": task.TaskGuid,
 				})
 			}

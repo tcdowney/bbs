@@ -83,13 +83,9 @@ func (db *ETCDDB) taskByGuidWithIndex(logger lager.Logger, taskGuid string) (*mo
 
 func (db *ETCDDB) nodeToTask(logger lager.Logger, node *etcdclient.Node, task *models.Task) *models.Error {
 	if db.supportsBinary() {
-		var envelope models.Envelope
-		err := envelope.Open([]byte(node.Value))
-		if err != nil {
-			return models.ErrUnknownError
-		}
+		envelope := models.Open([]byte(node.Value))
 
-		err = envelope.Unmarshal(task)
+		err := envelope.Unmarshal(task)
 		if err != nil {
 			return models.ErrUnknownError
 		}
@@ -100,8 +96,25 @@ func (db *ETCDDB) nodeToTask(logger lager.Logger, node *etcdclient.Node, task *m
 			return models.ErrUnknownError
 		}
 	}
-
 	return nil
+}
+
+func (db *ETCDDB) serializeTask(logger lager.Logger, task *models.Task) ([]byte, *models.Error) {
+	if db.supportsBinary() {
+		v, modelErr := models.Marshal(models.V0, task)
+		if modelErr != nil {
+			logger.Error("failed-to-marshal", modelErr)
+			return nil, modelErr
+		}
+		return v, nil
+	} else {
+		v, modelErr := models.ToJSON(task)
+		if modelErr != nil {
+			logger.Error("failed-to-json", modelErr)
+			return nil, modelErr
+		}
+		return v, nil
+	}
 }
 
 func (db *ETCDDB) DesireTask(logger lager.Logger, taskDef *models.TaskDefinition, taskGuid, domain string) *models.Error {
@@ -118,21 +131,9 @@ func (db *ETCDDB) DesireTask(logger lager.Logger, taskDef *models.TaskDefinition
 		UpdatedAt:      db.clock.Now().UnixNano(),
 	}
 
-	var value []byte
-	if db.supportsBinary() {
-		v, modelErr := models.Marshal(models.V0, task)
-		if modelErr != nil {
-			logger.Error("failed-to-marshal", modelErr)
-			return modelErr
-		}
-		value = v
-	} else {
-		v, modelErr := models.ToJSON(task)
-		if modelErr != nil {
-			logger.Error("failed-to-json", modelErr)
-			return modelErr
-		}
-		value = v
+	value, modelErr := db.serializeTask(logger, task)
+	if modelErr != nil {
+		return modelErr
 	}
 
 	logger.Debug("persisting-task")
@@ -183,9 +184,8 @@ func (db *ETCDDB) StartTask(logger lager.Logger, taskGuid, cellID string) (bool,
 	task.State = models.Task_Running
 	task.CellId = cellID
 
-	value, modelErr := models.ToJSON(task)
+	value, modelErr := db.serializeTask(logger, task)
 	if modelErr != nil {
-		logger.Error("failed-to-json", modelErr)
 		return false, modelErr
 	}
 
@@ -311,9 +311,8 @@ func (db *ETCDDB) CompleteTask(logger lager.Logger, taskGuid, cellId string, fai
 func (db *ETCDDB) completeTask(logger lager.Logger, task *models.Task, index uint64, failed bool, failureReason, result string) *models.Error {
 	db.markTaskCompleted(task, failed, failureReason, result)
 
-	value, modelErr := models.ToJSON(task)
+	value, modelErr := db.serializeTask(logger, task)
 	if modelErr != nil {
-		logger.Error("failed-to-json", modelErr)
 		return modelErr
 	}
 
@@ -370,9 +369,8 @@ func (db *ETCDDB) ResolvingTask(logger lager.Logger, taskGuid string) *models.Er
 	task.UpdatedAt = db.clock.Now().UnixNano()
 	task.State = models.Task_Resolving
 
-	value, modelErr := models.ToJSON(task)
+	value, modelErr := db.serializeTask(logger, task)
 	if modelErr != nil {
-		logger.Error("failed-to-json", modelErr)
 		return modelErr
 	}
 

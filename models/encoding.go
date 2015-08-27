@@ -23,25 +23,19 @@ type Envelope struct {
 	Payload             []byte
 }
 
-// func NewEnvelope(preferredFormat SerializationFormat) *Encoder {
-// }
-
-// func (e *Encoder) Encode(payload []byte) *Envelope {
-// }
-
-func (e *Envelope) Open(data []byte) error {
+func Open(data []byte) *Envelope {
+	e := &Envelope{}
 	if !isEncoded(data) {
 		e.SerializationFormat = JSON
 		e.Version = V0
 		e.Payload = data
-		return nil
+		return e
 	}
 
 	e.SerializationFormat = SerializationFormat(data[0])
 	e.Version = Version(V0)
 	e.Payload = data[2:]
-
-	return nil
+	return e
 }
 
 func isEncoded(data []byte) bool {
