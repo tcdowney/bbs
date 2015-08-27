@@ -92,9 +92,7 @@ func (db *ETCDDB) ConvergeTasks(
 
 	logger.Debug("determining-convergence-work", lager.Data{"num-tasks": len(taskState.Nodes)})
 	for _, node := range taskState.Nodes {
-		task := &models.Task{}
-
-		err := db.nodeToTask(logger, node, task)
+		task, err := db.nodeToTask(logger, node)
 		if err != nil {
 			logger.Error("failed-to-unmarshal-task-json", err, lager.Data{
 				"key":   node.Key,

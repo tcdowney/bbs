@@ -6,6 +6,11 @@ import (
 	"github.com/gogo/protobuf/proto"
 )
 
+//go:generate counterfeiter . Versioner
+type Versioner interface {
+	MigrateFromVersion(v Version) error
+}
+
 //go:generate counterfeiter . Validator
 type Validator interface {
 	Validate() error

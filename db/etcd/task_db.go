@@ -38,9 +38,7 @@ func (db *ETCDDB) Tasks(logger lager.Logger, filter models.TaskFilter) ([]*model
 
 	for _, node := range root.Nodes {
 		node := node
-		task := &models.Task{}
-
-		err := db.nodeToTask(logger, node, task)
+		task, err := db.nodeToTask(logger, node)
 		if err != nil {
 			return nil, err
 		}
@@ -71,32 +69,25 @@ func (db *ETCDDB) taskByGuidWithIndex(logger lager.Logger, taskGuid string) (*mo
 		return nil, 0, bbsErr
 	}
 
-	var task models.Task
-	deserializeErr := db.nodeToTask(logger, node, &task)
+	task, deserializeErr := db.nodeToTask(logger, node)
 	if deserializeErr != nil {
 		logger.Error("failed-parsing-desired-task", deserializeErr)
 		return nil, 0, models.ErrDeserializeJSON
 	}
 
-	return &task, node.ModifiedIndex, nil
+	return task, node.ModifiedIndex, nil
 }
 
-func (db *ETCDDB) nodeToTask(logger lager.Logger, node *etcdclient.Node, task *models.Task) *models.Error {
-	if db.supportsBinary() {
-		envelope := models.Open([]byte(node.Value))
+func (db *ETCDDB) nodeToTask(logger lager.Logger, node *etcdclient.Node) (*models.Task, *models.Error) {
+	envelope := models.OpenEnvelope([]byte(node.Value))
 
-		err := envelope.Unmarshal(task)
-		if err != nil {
-			return models.ErrUnknownError
-		}
-	} else {
-		deserializeErr := models.FromJSON([]byte(node.Value), task)
-		if deserializeErr != nil {
-			logger.Error("failed-parsing-task", deserializeErr, lager.Data{"key": node.Key})
-			return models.ErrUnknownError
-		}
+	task := &models.Task{}
+	err := envelope.Unmarshal(logger, task)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	return task, nil
 }
 
 func (db *ETCDDB) serializeTask(logger lager.Logger, task *models.Task) ([]byte, *models.Error) {

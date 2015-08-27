@@ -2,10 +2,10 @@ package models
 
 import (
 	"encoding/json"
-	"errors"
 	"reflect"
 
 	"github.com/gogo/protobuf/proto"
+	"github.com/pivotal-golang/lager"
 )
 
 type SerializationFormat byte
@@ -23,8 +23,42 @@ type Envelope struct {
 	Payload             []byte
 }
 
-func Open(data []byte) *Envelope {
+func (e *Envelope) Unmarshal(logger lager.Logger, model Validator) *Error {
+	switch e.SerializationFormat {
+	case JSON:
+		err := json.Unmarshal(e.Payload, model)
+		if err != nil {
+			logger.Error("failed-to-json-unmarshal-payload", err)
+			return NewError(InvalidRecord, err.Error())
+		}
+	case PROTO:
+		if pv, ok := model.(ProtoValidator); ok {
+			err := proto.Unmarshal(e.Payload, pv)
+			if err != nil {
+				logger.Error("failed-to-proto-unmarshal-payload", err)
+				return NewError(InvalidRecord, err.Error())
+			}
+		} else {
+			logger.Error("cannot-unmarshal-into-non-proto-model", nil)
+			return NewError(FailedToOpenEnvelope, "cannot unmarshal protobuffer")
+		}
+	}
+
+	if versioner, ok := model.(Versioner); ok {
+		versioner.MigrateFromVersion(e.Version)
+	}
+
+	err := model.Validate()
+	if err != nil {
+		logger.Error("invalid-record", err)
+		return NewError(InvalidRecord, err.Error())
+	}
+	return nil
+}
+
+func OpenEnvelope(data []byte) *Envelope {
 	e := &Envelope{}
+
 	if !isEncoded(data) {
 		e.SerializationFormat = JSON
 		e.Version = V0
@@ -64,18 +98,6 @@ func Marshal(version Version, v ProtoValidator) ([]byte, *Error) {
 		return nil, err
 	}
 	return append([]byte{byte(PROTO), byte(version)}, payload...), nil
-}
-
-func (e *Envelope) Unmarshal(model Validator) error {
-	switch e.SerializationFormat {
-	case JSON:
-		return FromJSON(e.Payload, model)
-	case PROTO:
-		if pv, ok := model.(ProtoValidator); ok {
-			return FromProto(e.Payload, pv)
-		}
-	}
-	return errors.New("Unexpected serialization format")
 }
 
 func FromJSON(payload []byte, v Validator) error {
