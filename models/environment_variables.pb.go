@@ -122,9 +122,6 @@ func (m *EnvironmentVariable) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthEnvironmentVariables
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -180,9 +177,6 @@ func skipEnvironmentVariables(data []byte) (n int, err error) {
 				}
 			}
 			iNdEx += length
-			if length < 0 {
-				return 0, ErrInvalidLengthEnvironmentVariables
-			}
 			return iNdEx, nil
 		case 3:
 			for {
@@ -221,11 +215,6 @@ func skipEnvironmentVariables(data []byte) (n int, err error) {
 	}
 	panic("unreachable")
 }
-
-var (
-	ErrInvalidLengthEnvironmentVariables = fmt.Errorf("proto: negative length found during unmarshaling")
-)
-
 func (this *EnvironmentVariable) String() string {
 	if this == nil {
 		return "nil"
@@ -278,7 +267,7 @@ func (m *EnvironmentVariable) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *EnvironmentVariable) MarshalTo(data []byte) (int, error) {
+func (m *EnvironmentVariable) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int

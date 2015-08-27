@@ -159,9 +159,6 @@ func (m *ActualLRPCreatedEvent) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -185,9 +182,6 @@ func (m *ActualLRPCreatedEvent) Unmarshal(data []byte) error {
 			skippy, err := skipEvents(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEvents
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -234,9 +228,6 @@ func (m *ActualLRPChangedEvent) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -264,9 +255,6 @@ func (m *ActualLRPChangedEvent) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -290,9 +278,6 @@ func (m *ActualLRPChangedEvent) Unmarshal(data []byte) error {
 			skippy, err := skipEvents(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEvents
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -339,9 +324,6 @@ func (m *ActualLRPRemovedEvent) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -365,9 +347,6 @@ func (m *ActualLRPRemovedEvent) Unmarshal(data []byte) error {
 			skippy, err := skipEvents(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEvents
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -414,9 +393,6 @@ func (m *DesiredLRPCreatedEvent) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -440,9 +416,6 @@ func (m *DesiredLRPCreatedEvent) Unmarshal(data []byte) error {
 			skippy, err := skipEvents(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEvents
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -489,9 +462,6 @@ func (m *DesiredLRPChangedEvent) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -519,9 +489,6 @@ func (m *DesiredLRPChangedEvent) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -545,9 +512,6 @@ func (m *DesiredLRPChangedEvent) Unmarshal(data []byte) error {
 			skippy, err := skipEvents(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEvents
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -594,9 +558,6 @@ func (m *DesiredLRPRemovedEvent) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -620,9 +581,6 @@ func (m *DesiredLRPRemovedEvent) Unmarshal(data []byte) error {
 			skippy, err := skipEvents(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEvents
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -679,9 +637,6 @@ func skipEvents(data []byte) (n int, err error) {
 				}
 			}
 			iNdEx += length
-			if length < 0 {
-				return 0, ErrInvalidLengthEvents
-			}
 			return iNdEx, nil
 		case 3:
 			for {
@@ -720,11 +675,6 @@ func skipEvents(data []byte) (n int, err error) {
 	}
 	panic("unreachable")
 }
-
-var (
-	ErrInvalidLengthEvents = fmt.Errorf("proto: negative length found during unmarshaling")
-)
-
 func (this *ActualLRPCreatedEvent) String() string {
 	if this == nil {
 		return "nil"
@@ -886,7 +836,7 @@ func (m *ActualLRPCreatedEvent) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ActualLRPCreatedEvent) MarshalTo(data []byte) (int, error) {
+func (m *ActualLRPCreatedEvent) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -914,7 +864,7 @@ func (m *ActualLRPChangedEvent) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ActualLRPChangedEvent) MarshalTo(data []byte) (int, error) {
+func (m *ActualLRPChangedEvent) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -952,7 +902,7 @@ func (m *ActualLRPRemovedEvent) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ActualLRPRemovedEvent) MarshalTo(data []byte) (int, error) {
+func (m *ActualLRPRemovedEvent) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -980,7 +930,7 @@ func (m *DesiredLRPCreatedEvent) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DesiredLRPCreatedEvent) MarshalTo(data []byte) (int, error) {
+func (m *DesiredLRPCreatedEvent) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1008,7 +958,7 @@ func (m *DesiredLRPChangedEvent) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DesiredLRPChangedEvent) MarshalTo(data []byte) (int, error) {
+func (m *DesiredLRPChangedEvent) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1046,7 +996,7 @@ func (m *DesiredLRPRemovedEvent) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DesiredLRPRemovedEvent) MarshalTo(data []byte) (int, error) {
+func (m *DesiredLRPRemovedEvent) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int

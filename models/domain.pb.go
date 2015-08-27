@@ -117,9 +117,6 @@ func (m *DomainsResponse) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthDomain
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -166,9 +163,6 @@ func (m *DomainsResponse) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthDomain
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -214,9 +208,6 @@ func (m *UpsertDomainResponse) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthDomain
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -240,9 +231,6 @@ func (m *UpsertDomainResponse) Unmarshal(data []byte) error {
 			skippy, err := skipDomain(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthDomain
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -324,9 +312,6 @@ func (m *UpsertDomainRequest) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthDomain
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -382,9 +367,6 @@ func skipDomain(data []byte) (n int, err error) {
 				}
 			}
 			iNdEx += length
-			if length < 0 {
-				return 0, ErrInvalidLengthDomain
-			}
 			return iNdEx, nil
 		case 3:
 			for {
@@ -423,11 +405,6 @@ func skipDomain(data []byte) (n int, err error) {
 	}
 	panic("unreachable")
 }
-
-var (
-	ErrInvalidLengthDomain = fmt.Errorf("proto: negative length found during unmarshaling")
-)
-
 func (this *DomainsResponse) String() string {
 	if this == nil {
 		return "nil"
@@ -526,7 +503,7 @@ func (m *DomainsResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DomainsResponse) MarshalTo(data []byte) (int, error) {
+func (m *DomainsResponse) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -569,7 +546,7 @@ func (m *UpsertDomainResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *UpsertDomainResponse) MarshalTo(data []byte) (int, error) {
+func (m *UpsertDomainResponse) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -597,7 +574,7 @@ func (m *UpsertDomainRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *UpsertDomainRequest) MarshalTo(data []byte) (int, error) {
+func (m *UpsertDomainRequest) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int

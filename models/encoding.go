@@ -23,6 +23,30 @@ type Envelope struct {
 	Payload             []byte
 }
 
+func OpenEnvelope(data []byte) *Envelope {
+	e := &Envelope{}
+
+	if !isEncoded(data) {
+		e.SerializationFormat = JSON
+		e.Version = V0
+		e.Payload = data
+		return e
+	}
+
+	e.SerializationFormat = SerializationFormat(data[0])
+	e.Version = Version(V0)
+	e.Payload = data[2:]
+	return e
+}
+
+func Marshal(version Version, v ProtoValidator) ([]byte, *Error) {
+	payload, err := toProto(v)
+	if err != nil {
+		return nil, err
+	}
+	return append([]byte{byte(PROTO), byte(version)}, payload...), nil
+}
+
 func (e *Envelope) Unmarshal(logger lager.Logger, model Validator) *Error {
 	switch e.SerializationFormat {
 	case JSON:
@@ -42,6 +66,9 @@ func (e *Envelope) Unmarshal(logger lager.Logger, model Validator) *Error {
 			logger.Error("cannot-unmarshal-into-non-proto-model", nil)
 			return NewError(FailedToOpenEnvelope, "cannot unmarshal protobuffer")
 		}
+	default:
+		logger.Error("cannot-unmarshal-unknown-serialization-format", nil)
+		return NewError(FailedToOpenEnvelope, "unknown serialization format")
 	}
 
 	if versioner, ok := model.(Versioner); ok {
@@ -54,22 +81,6 @@ func (e *Envelope) Unmarshal(logger lager.Logger, model Validator) *Error {
 		return NewError(InvalidRecord, err.Error())
 	}
 	return nil
-}
-
-func OpenEnvelope(data []byte) *Envelope {
-	e := &Envelope{}
-
-	if !isEncoded(data) {
-		e.SerializationFormat = JSON
-		e.Version = V0
-		e.Payload = data
-		return e
-	}
-
-	e.SerializationFormat = SerializationFormat(data[0])
-	e.Version = Version(V0)
-	e.Payload = data[2:]
-	return e
 }
 
 func isEncoded(data []byte) bool {
@@ -90,14 +101,6 @@ func isEncoded(data []byte) bool {
 	}
 
 	return true
-}
-
-func Marshal(version Version, v ProtoValidator) ([]byte, *Error) {
-	payload, err := ToProto(v)
-	if err != nil {
-		return nil, err
-	}
-	return append([]byte{byte(PROTO), byte(version)}, payload...), nil
 }
 
 func FromJSON(payload []byte, v Validator) error {
@@ -123,15 +126,7 @@ func ToJSON(v Validator) ([]byte, *Error) {
 	return bytes, nil
 }
 
-func FromProto(payload []byte, v ProtoValidator) error {
-	err := proto.Unmarshal(payload, v)
-	if err != nil {
-		return err
-	}
-	return v.Validate()
-}
-
-func ToProto(v ProtoValidator) ([]byte, *Error) {
+func toProto(v ProtoValidator) ([]byte, *Error) {
 	if !isNil(v) {
 		if err := v.Validate(); err != nil {
 			return nil, NewError(InvalidRecord, err.Error())

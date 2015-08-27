@@ -331,9 +331,6 @@ func (m *TaskDefinition) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthTask
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -359,9 +356,6 @@ func (m *TaskDefinition) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthTask
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -586,9 +580,6 @@ func (m *TaskDefinition) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthTask
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -610,9 +601,6 @@ func (m *TaskDefinition) Unmarshal(data []byte) error {
 			skippy, err := skipTask(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthTask
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -659,9 +647,6 @@ func (m *Task) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthTask
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -877,9 +862,6 @@ func (m *Task) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthTask
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -935,9 +917,6 @@ func skipTask(data []byte) (n int, err error) {
 				}
 			}
 			iNdEx += length
-			if length < 0 {
-				return 0, ErrInvalidLengthTask
-			}
 			return iNdEx, nil
 		case 3:
 			for {
@@ -976,11 +955,6 @@ func skipTask(data []byte) (n int, err error) {
 	}
 	panic("unreachable")
 }
-
-var (
-	ErrInvalidLengthTask = fmt.Errorf("proto: negative length found during unmarshaling")
-)
-
 func (this *TaskDefinition) String() string {
 	if this == nil {
 		return "nil"
@@ -1120,7 +1094,7 @@ func (m *TaskDefinition) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *TaskDefinition) MarshalTo(data []byte) (int, error) {
+func (m *TaskDefinition) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1217,7 +1191,7 @@ func (m *Task) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *Task) MarshalTo(data []byte) (int, error) {
+func (m *Task) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int

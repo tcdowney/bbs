@@ -186,9 +186,6 @@ func (m *PortRange) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthSecurityGroup
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -262,9 +259,6 @@ func (m *ICMPInfo) Unmarshal(data []byte) error {
 			skippy, err := skipSecurityGroup(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthSecurityGroup
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -372,9 +366,6 @@ func (m *SecurityGroupRule) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthSecurityGroup
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -402,9 +393,6 @@ func (m *SecurityGroupRule) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthSecurityGroup
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -445,9 +433,6 @@ func (m *SecurityGroupRule) Unmarshal(data []byte) error {
 			skippy, err := skipSecurityGroup(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthSecurityGroup
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -504,9 +489,6 @@ func skipSecurityGroup(data []byte) (n int, err error) {
 				}
 			}
 			iNdEx += length
-			if length < 0 {
-				return 0, ErrInvalidLengthSecurityGroup
-			}
 			return iNdEx, nil
 		case 3:
 			for {
@@ -545,11 +527,6 @@ func skipSecurityGroup(data []byte) (n int, err error) {
 	}
 	panic("unreachable")
 }
-
-var (
-	ErrInvalidLengthSecurityGroup = fmt.Errorf("proto: negative length found during unmarshaling")
-)
-
 func (this *PortRange) String() string {
 	if this == nil {
 		return "nil"
@@ -662,7 +639,7 @@ func (m *PortRange) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *PortRange) MarshalTo(data []byte) (int, error) {
+func (m *PortRange) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -686,7 +663,7 @@ func (m *ICMPInfo) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ICMPInfo) MarshalTo(data []byte) (int, error) {
+func (m *ICMPInfo) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -710,7 +687,7 @@ func (m *SecurityGroupRule) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *SecurityGroupRule) MarshalTo(data []byte) (int, error) {
+func (m *SecurityGroupRule) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int

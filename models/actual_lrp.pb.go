@@ -234,9 +234,6 @@ func (m *ActualLRPGroup) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthActualLrp
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -264,9 +261,6 @@ func (m *ActualLRPGroup) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthActualLrp
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -290,9 +284,6 @@ func (m *ActualLRPGroup) Unmarshal(data []byte) error {
 			skippy, err := skipActualLrp(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthActualLrp
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -367,9 +358,6 @@ func (m *PortMapping) Unmarshal(data []byte) error {
 			skippy, err := skipActualLrp(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthActualLrp
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -473,9 +461,6 @@ func (m *ActualLRPKey) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthActualLrp
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -562,9 +547,6 @@ func (m *ActualLRPInstanceKey) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthActualLrp
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -632,9 +614,6 @@ func (m *ActualLRPNetInfo) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthActualLrp
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -656,9 +635,6 @@ func (m *ActualLRPNetInfo) Unmarshal(data []byte) error {
 			skippy, err := skipActualLrp(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthActualLrp
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -705,9 +681,6 @@ func (m *ActualLRP) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthActualLrp
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -732,9 +705,6 @@ func (m *ActualLRP) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthActualLrp
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -759,9 +729,6 @@ func (m *ActualLRP) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthActualLrp
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -884,9 +851,6 @@ func (m *ActualLRP) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthActualLrp
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -907,9 +871,6 @@ func (m *ActualLRP) Unmarshal(data []byte) error {
 			skippy, err := skipActualLrp(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthActualLrp
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -966,9 +927,6 @@ func skipActualLrp(data []byte) (n int, err error) {
 				}
 			}
 			iNdEx += length
-			if length < 0 {
-				return 0, ErrInvalidLengthActualLrp
-			}
 			return iNdEx, nil
 		case 3:
 			for {
@@ -1007,11 +965,6 @@ func skipActualLrp(data []byte) (n int, err error) {
 	}
 	panic("unreachable")
 }
-
-var (
-	ErrInvalidLengthActualLrp = fmt.Errorf("proto: negative length found during unmarshaling")
-)
-
 func (this *ActualLRPGroup) String() string {
 	if this == nil {
 		return "nil"
@@ -1196,7 +1149,7 @@ func (m *ActualLRPGroup) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ActualLRPGroup) MarshalTo(data []byte) (int, error) {
+func (m *ActualLRPGroup) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1234,7 +1187,7 @@ func (m *PortMapping) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *PortMapping) MarshalTo(data []byte) (int, error) {
+func (m *PortMapping) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1258,7 +1211,7 @@ func (m *ActualLRPKey) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ActualLRPKey) MarshalTo(data []byte) (int, error) {
+func (m *ActualLRPKey) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1287,7 +1240,7 @@ func (m *ActualLRPInstanceKey) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ActualLRPInstanceKey) MarshalTo(data []byte) (int, error) {
+func (m *ActualLRPInstanceKey) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1313,7 +1266,7 @@ func (m *ActualLRPNetInfo) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ActualLRPNetInfo) MarshalTo(data []byte) (int, error) {
+func (m *ActualLRPNetInfo) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1347,7 +1300,7 @@ func (m *ActualLRP) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ActualLRP) MarshalTo(data []byte) (int, error) {
+func (m *ActualLRP) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int

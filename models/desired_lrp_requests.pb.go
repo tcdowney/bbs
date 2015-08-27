@@ -195,9 +195,6 @@ func (m *DesiredLRPLifecycleResponse) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -221,9 +218,6 @@ func (m *DesiredLRPLifecycleResponse) Unmarshal(data []byte) error {
 			skippy, err := skipDesiredLrpRequests(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -270,9 +264,6 @@ func (m *DesiredLRPsResponse) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -300,9 +291,6 @@ func (m *DesiredLRPsResponse) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -324,9 +312,6 @@ func (m *DesiredLRPsResponse) Unmarshal(data []byte) error {
 			skippy, err := skipDesiredLrpRequests(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -392,9 +377,6 @@ func (m *DesiredLRPsRequest) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -440,9 +422,6 @@ func (m *DesiredLRPResponse) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -470,9 +449,6 @@ func (m *DesiredLRPResponse) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -496,9 +472,6 @@ func (m *DesiredLRPResponse) Unmarshal(data []byte) error {
 			skippy, err := skipDesiredLrpRequests(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -564,9 +537,6 @@ func (m *DesiredLRPByProcessGuidRequest) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -612,9 +582,6 @@ func (m *DesireLRPRequest) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -638,9 +605,6 @@ func (m *DesireLRPRequest) Unmarshal(data []byte) error {
 			skippy, err := skipDesiredLrpRequests(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -709,9 +673,6 @@ func (m *UpdateDesiredLRPRequest) Unmarshal(data []byte) error {
 				}
 			}
 			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -735,9 +696,6 @@ func (m *UpdateDesiredLRPRequest) Unmarshal(data []byte) error {
 			skippy, err := skipDesiredLrpRequests(data[iNdEx:])
 			if err != nil {
 				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
 			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
@@ -803,9 +761,6 @@ func (m *RemoveDesiredLRPRequest) Unmarshal(data []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthDesiredLrpRequests
-			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -861,9 +816,6 @@ func skipDesiredLrpRequests(data []byte) (n int, err error) {
 				}
 			}
 			iNdEx += length
-			if length < 0 {
-				return 0, ErrInvalidLengthDesiredLrpRequests
-			}
 			return iNdEx, nil
 		case 3:
 			for {
@@ -902,11 +854,6 @@ func skipDesiredLrpRequests(data []byte) (n int, err error) {
 	}
 	panic("unreachable")
 }
-
-var (
-	ErrInvalidLengthDesiredLrpRequests = fmt.Errorf("proto: negative length found during unmarshaling")
-)
-
 func (this *DesiredLRPLifecycleResponse) String() string {
 	if this == nil {
 		return "nil"
@@ -1107,7 +1054,7 @@ func (m *DesiredLRPLifecycleResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DesiredLRPLifecycleResponse) MarshalTo(data []byte) (int, error) {
+func (m *DesiredLRPLifecycleResponse) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1135,7 +1082,7 @@ func (m *DesiredLRPsResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DesiredLRPsResponse) MarshalTo(data []byte) (int, error) {
+func (m *DesiredLRPsResponse) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1175,7 +1122,7 @@ func (m *DesiredLRPsRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DesiredLRPsRequest) MarshalTo(data []byte) (int, error) {
+func (m *DesiredLRPsRequest) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1197,7 +1144,7 @@ func (m *DesiredLRPResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DesiredLRPResponse) MarshalTo(data []byte) (int, error) {
+func (m *DesiredLRPResponse) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1235,7 +1182,7 @@ func (m *DesiredLRPByProcessGuidRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DesiredLRPByProcessGuidRequest) MarshalTo(data []byte) (int, error) {
+func (m *DesiredLRPByProcessGuidRequest) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1257,7 +1204,7 @@ func (m *DesireLRPRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *DesireLRPRequest) MarshalTo(data []byte) (int, error) {
+func (m *DesireLRPRequest) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1285,7 +1232,7 @@ func (m *UpdateDesiredLRPRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *UpdateDesiredLRPRequest) MarshalTo(data []byte) (int, error) {
+func (m *UpdateDesiredLRPRequest) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
@@ -1317,7 +1264,7 @@ func (m *RemoveDesiredLRPRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *RemoveDesiredLRPRequest) MarshalTo(data []byte) (int, error) {
+func (m *RemoveDesiredLRPRequest) MarshalTo(data []byte) (n int, err error) {
 	var i int
 	_ = i
 	var l int
