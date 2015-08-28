@@ -14,13 +14,31 @@ type FakeVersioner struct {
 	validateReturns struct {
 		result1 error
 	}
-	MigrateFromVersionStub        func(v models.Version) error
+	ResetStub        func()
+	resetMutex       sync.RWMutex
+	resetArgsForCall []struct{}
+	StringStub        func() string
+	stringMutex       sync.RWMutex
+	stringArgsForCall []struct{}
+	stringReturns struct {
+		result1 string
+	}
+	ProtoMessageStub        func()
+	protoMessageMutex       sync.RWMutex
+	protoMessageArgsForCall []struct{}
+	MigrateFromVersionStub        func(v models.Version) *models.Error
 	migrateFromVersionMutex       sync.RWMutex
 	migrateFromVersionArgsForCall []struct {
 		v models.Version
 	}
 	migrateFromVersionReturns struct {
-		result1 error
+		result1 *models.Error
+	}
+	VersionStub        func() models.Version
+	versionMutex       sync.RWMutex
+	versionArgsForCall []struct{}
+	versionReturns struct {
+		result1 models.Version
 	}
 }
 
@@ -48,7 +66,61 @@ func (fake *FakeVersioner) ValidateReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeVersioner) MigrateFromVersion(v models.Version) error {
+func (fake *FakeVersioner) Reset() {
+	fake.resetMutex.Lock()
+	fake.resetArgsForCall = append(fake.resetArgsForCall, struct{}{})
+	fake.resetMutex.Unlock()
+	if fake.ResetStub != nil {
+		fake.ResetStub()
+	}
+}
+
+func (fake *FakeVersioner) ResetCallCount() int {
+	fake.resetMutex.RLock()
+	defer fake.resetMutex.RUnlock()
+	return len(fake.resetArgsForCall)
+}
+
+func (fake *FakeVersioner) String() string {
+	fake.stringMutex.Lock()
+	fake.stringArgsForCall = append(fake.stringArgsForCall, struct{}{})
+	fake.stringMutex.Unlock()
+	if fake.StringStub != nil {
+		return fake.StringStub()
+	} else {
+		return fake.stringReturns.result1
+	}
+}
+
+func (fake *FakeVersioner) StringCallCount() int {
+	fake.stringMutex.RLock()
+	defer fake.stringMutex.RUnlock()
+	return len(fake.stringArgsForCall)
+}
+
+func (fake *FakeVersioner) StringReturns(result1 string) {
+	fake.StringStub = nil
+	fake.stringReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeVersioner) ProtoMessage() {
+	fake.protoMessageMutex.Lock()
+	fake.protoMessageArgsForCall = append(fake.protoMessageArgsForCall, struct{}{})
+	fake.protoMessageMutex.Unlock()
+	if fake.ProtoMessageStub != nil {
+		fake.ProtoMessageStub()
+	}
+}
+
+func (fake *FakeVersioner) ProtoMessageCallCount() int {
+	fake.protoMessageMutex.RLock()
+	defer fake.protoMessageMutex.RUnlock()
+	return len(fake.protoMessageArgsForCall)
+}
+
+func (fake *FakeVersioner) MigrateFromVersion(v models.Version) *models.Error {
 	fake.migrateFromVersionMutex.Lock()
 	fake.migrateFromVersionArgsForCall = append(fake.migrateFromVersionArgsForCall, struct {
 		v models.Version
@@ -73,10 +145,34 @@ func (fake *FakeVersioner) MigrateFromVersionArgsForCall(i int) models.Version {
 	return fake.migrateFromVersionArgsForCall[i].v
 }
 
-func (fake *FakeVersioner) MigrateFromVersionReturns(result1 error) {
+func (fake *FakeVersioner) MigrateFromVersionReturns(result1 *models.Error) {
 	fake.MigrateFromVersionStub = nil
 	fake.migrateFromVersionReturns = struct {
-		result1 error
+		result1 *models.Error
+	}{result1}
+}
+
+func (fake *FakeVersioner) Version() models.Version {
+	fake.versionMutex.Lock()
+	fake.versionArgsForCall = append(fake.versionArgsForCall, struct{}{})
+	fake.versionMutex.Unlock()
+	if fake.VersionStub != nil {
+		return fake.VersionStub()
+	} else {
+		return fake.versionReturns.result1
+	}
+}
+
+func (fake *FakeVersioner) VersionCallCount() int {
+	fake.versionMutex.RLock()
+	defer fake.versionMutex.RUnlock()
+	return len(fake.versionArgsForCall)
+}
+
+func (fake *FakeVersioner) VersionReturns(result1 models.Version) {
+	fake.VersionStub = nil
+	fake.versionReturns = struct {
+		result1 models.Version
 	}{result1}
 }
 

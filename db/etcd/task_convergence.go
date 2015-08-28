@@ -92,7 +92,8 @@ func (db *ETCDDB) ConvergeTasks(
 
 	logger.Debug("determining-convergence-work", lager.Data{"num-tasks": len(taskState.Nodes)})
 	for _, node := range taskState.Nodes {
-		task, err := db.nodeToTask(logger, node)
+		task := new(models.Task)
+		err := db.deserializeModel(logger, node, task)
 		if err != nil {
 			logger.Error("failed-to-unmarshal-task-json", err, lager.Data{
 				"key":   node.Key,
@@ -224,7 +225,7 @@ func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask,
 	for _, taskToCAS := range tasksToCAS {
 		task := taskToCAS.NewTask
 		task.UpdatedAt = db.clock.Now().UnixNano()
-		value, err := db.serializeTask(logger, task)
+		value, err := db.serializeModel(logger, task)
 		if err != nil {
 			logger.Error("failed-to-marshal", err, lager.Data{
 				"task-guid": task.TaskGuid,

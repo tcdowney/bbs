@@ -26,6 +26,7 @@ func (err *Error) Error() string {
 const (
 	InvalidDomain = "InvalidDomain"
 
+	UnkownVersion          = "UnkownVersion"
 	InvalidRecord          = "InvalidRecord"
 	InvalidRequest         = "InvalidRequest"
 	InvalidResponse        = "InvalidResponse"

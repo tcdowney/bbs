@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"sync"
 
+	etcdclient "github.com/coreos/go-etcd/etcd"
 	"github.com/cloudfoundry-incubator/bbs/auctionhandlers"
 	"github.com/cloudfoundry-incubator/bbs/cellhandlers"
 	"github.com/cloudfoundry-incubator/bbs/db"
@@ -84,6 +85,23 @@ func NewETCD(
 
 func (db *ETCDDB) supportsBinary() bool {
 	return db.client.SupportsBinary()
+}
+
+func (db *ETCDDB) serializeModel(logger lager.Logger, model models.Versioner) (data []byte, err *models.Error) {
+	if db.supportsBinary() {
+		data, err = models.MarshalEnvelope(models.PROTO, model)
+	} else {
+		data, err = models.MarshalEnvelope(models.JSON, model)
+	}
+	if err != nil {
+		logger.Error("failed-ro-serialize-model",err)
+	}
+	return
+}
+
+func (db *ETCDDB) deserializeModel(logger lager.Logger, node *etcdclient.Node, model models.Versioner) *models.Error {
+	envelope := models.OpenEnvelope([]byte(node.Value))
+	return envelope.Unmarshal(logger, model)
 }
 
 func (db *ETCDDB) fetchRecursiveRaw(logger lager.Logger, key string) (*etcd.Node, *models.Error) {

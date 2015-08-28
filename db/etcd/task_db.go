@@ -5,7 +5,6 @@ import (
 	"path"
 
 	"github.com/cloudfoundry-incubator/bbs/models"
-	etcdclient "github.com/coreos/go-etcd/etcd"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -37,8 +36,8 @@ func (db *ETCDDB) Tasks(logger lager.Logger, filter models.TaskFilter) ([]*model
 	tasks := []*models.Task{}
 
 	for _, node := range root.Nodes {
-		node := node
-		task, err := db.nodeToTask(logger, node)
+		task := new(models.Task)
+		err := db.deserializeModel(logger, node, task)
 		if err != nil {
 			return nil, err
 		}
@@ -69,43 +68,14 @@ func (db *ETCDDB) taskByGuidWithIndex(logger lager.Logger, taskGuid string) (*mo
 		return nil, 0, bbsErr
 	}
 
-	task, deserializeErr := db.nodeToTask(logger, node)
+	task := new(models.Task)
+	deserializeErr := db.deserializeModel(logger, node, task)
 	if deserializeErr != nil {
 		logger.Error("failed-parsing-desired-task", deserializeErr)
 		return nil, 0, models.ErrDeserializeJSON
 	}
 
 	return task, node.ModifiedIndex, nil
-}
-
-func (db *ETCDDB) nodeToTask(logger lager.Logger, node *etcdclient.Node) (*models.Task, *models.Error) {
-	envelope := models.OpenEnvelope([]byte(node.Value))
-
-	task := &models.Task{}
-	err := envelope.Unmarshal(logger, task)
-	if err != nil {
-		return nil, err
-	}
-
-	return task, nil
-}
-
-func (db *ETCDDB) serializeTask(logger lager.Logger, task *models.Task) ([]byte, *models.Error) {
-	if db.supportsBinary() {
-		v, modelErr := models.Marshal(models.V0, task)
-		if modelErr != nil {
-			logger.Error("failed-to-marshal", modelErr)
-			return nil, modelErr
-		}
-		return v, nil
-	} else {
-		v, modelErr := models.ToJSON(task)
-		if modelErr != nil {
-			logger.Error("failed-to-json", modelErr)
-			return nil, modelErr
-		}
-		return v, nil
-	}
 }
 
 func (db *ETCDDB) DesireTask(logger lager.Logger, taskDef *models.TaskDefinition, taskGuid, domain string) *models.Error {
@@ -122,7 +92,7 @@ func (db *ETCDDB) DesireTask(logger lager.Logger, taskDef *models.TaskDefinition
 		UpdatedAt:      db.clock.Now().UnixNano(),
 	}
 
-	value, modelErr := db.serializeTask(logger, task)
+	value, modelErr := db.serializeModel(logger, task)
 	if modelErr != nil {
 		return modelErr
 	}
@@ -175,7 +145,7 @@ func (db *ETCDDB) StartTask(logger lager.Logger, taskGuid, cellID string) (bool,
 	task.State = models.Task_Running
 	task.CellId = cellID
 
-	value, modelErr := db.serializeTask(logger, task)
+	value, modelErr := db.serializeModel(logger, task)
 	if modelErr != nil {
 		return false, modelErr
 	}
@@ -302,7 +272,7 @@ func (db *ETCDDB) CompleteTask(logger lager.Logger, taskGuid, cellId string, fai
 func (db *ETCDDB) completeTask(logger lager.Logger, task *models.Task, index uint64, failed bool, failureReason, result string) *models.Error {
 	db.markTaskCompleted(task, failed, failureReason, result)
 
-	value, modelErr := db.serializeTask(logger, task)
+	value, modelErr := db.serializeModel(logger, task)
 	if modelErr != nil {
 		return modelErr
 	}
@@ -360,7 +330,7 @@ func (db *ETCDDB) ResolvingTask(logger lager.Logger, taskGuid string) *models.Er
 	task.UpdatedAt = db.clock.Now().UnixNano()
 	task.State = models.Task_Resolving
 
-	value, modelErr := db.serializeTask(logger, task)
+	value, modelErr := db.serializeModel(logger, task)
 	if modelErr != nil {
 		return modelErr
 	}

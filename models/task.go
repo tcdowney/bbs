@@ -3,6 +3,7 @@ package models
 import (
 	"net/url"
 	"regexp"
+	"fmt"
 
 	"github.com/pivotal-golang/lager"
 )
@@ -12,6 +13,22 @@ var taskGuidPattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 type TaskFilter struct {
 	Domain string
 	CellID string
+}
+
+func (t *Task) Version() Version {
+	return V0
+}
+
+func (t *Task) MigrateFromVersion(v Version) *Error {
+	switch v {
+	case V0:
+		return nil
+	default:
+		return NewError(
+			UnkownVersion,
+			fmt.Sprint("unkown task version: ", v),
+		)
+	}
 }
 
 func (t *Task) LagerData() lager.Data {

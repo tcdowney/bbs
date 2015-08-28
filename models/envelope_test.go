@@ -12,7 +12,7 @@ import (
 	"github.com/pivotal-golang/lager/lagertest"
 )
 
-var _ = Describe("Model Encoding", func() {
+var _ = Describe("Envelope", func() {
 	var logger *lagertest.TestLogger
 
 	BeforeEach(func() {
@@ -63,7 +63,7 @@ var _ = Describe("Model Encoding", func() {
 	Describe("Marshal", func() {
 		It("can successfully marshal a model object envelope", func() {
 			task := model_helpers.NewValidTask("some-guid")
-			encoded, err := models.Marshal(models.V0, task)
+			encoded, err := models.MarshalEnvelope(models.PROTO, task)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(models.SerializationFormat(encoded[0])).To(Equal(models.PROTO))
@@ -78,10 +78,10 @@ var _ = Describe("Model Encoding", func() {
 
 		Context("when model validation fails", func() {
 			It("returns an error ", func() {
-				model := &fakes.FakeProtoValidator{}
+				model := &fakes.FakeVersioner{}
 				model.ValidateReturns(errors.New("go away"))
 
-				_, err := models.Marshal(models.V0, model)
+				_, err := models.MarshalEnvelope(models.PROTO, model)
 				Expect(err).To(Equal(models.NewError(models.InvalidRecord, "go away")))
 			})
 		})
@@ -90,7 +90,7 @@ var _ = Describe("Model Encoding", func() {
 	Describe("Unmarshal", func() {
 		It("can marshal and unmarshal a task without losing data", func() {
 			task := model_helpers.NewValidTask("some-guid")
-			ValueInEtcd, err := models.Marshal(models.V0, task)
+			ValueInEtcd, err := models.MarshalEnvelope(models.PROTO, task)
 			Expect(err).NotTo(HaveOccurred())
 
 			envelope := models.OpenEnvelope(ValueInEtcd)
@@ -121,7 +121,7 @@ var _ = Describe("Model Encoding", func() {
 			envelope := &models.Envelope{
 				SerializationFormat: models.SerializationFormat(99),
 			}
-			model := &fakes.FakeValidator{}
+			model := &fakes.FakeVersioner{}
 
 			err := envelope.Unmarshal(logger, model)
 			Expect(err).To(HaveOccurred())
@@ -129,7 +129,7 @@ var _ = Describe("Model Encoding", func() {
 		})
 
 		It("returns an error when the json payload is invalid", func() {
-			model := &fakes.FakeValidator{}
+			model := &fakes.FakeVersioner{}
 			envelope := &models.Envelope{
 				SerializationFormat: models.JSON,
 				Payload:             []byte(`foobar: baz`),
