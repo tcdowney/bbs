@@ -118,7 +118,7 @@ func (db *ETCDDB) stopInstanceRange(logger lager.Logger, lower, upper int32, des
 
 	actualsMap, err := db.instanceActualLRPsByProcessGuid(logger, desiredLRP.ProcessGuid)
 	if err != nil {
-		logger.Error("failed-to-get-actual-lrps", err)
+		logger.Error("failed-to-get-actual-lrps", err.ToError())
 		return
 	}
 
@@ -173,7 +173,7 @@ func (db *ETCDDB) UpdateDesiredLRP(logger lager.Logger, processGuid string, upda
 
 	desiredLRP, index, modelErr := db.rawDesiredLRPByProcessGuid(logger, processGuid)
 	if modelErr != nil {
-		logger.Error("failed-to-fetch-existing-desired-lrp", modelErr)
+		logger.Error("failed-to-fetch-existing-desired-lrp", modelErr.ToError())
 		return modelErr
 	}
 
@@ -184,7 +184,7 @@ func (db *ETCDDB) UpdateDesiredLRP(logger lager.Logger, processGuid string, upda
 
 	value, modelErr := models.ToJSON(desiredLRP)
 	if modelErr != nil {
-		logger.Error("failed-to-serialize-desired-lrp", modelErr)
+		logger.Error("failed-to-serialize-desired-lrp", modelErr.ToError())
 		return modelErr
 	}
 

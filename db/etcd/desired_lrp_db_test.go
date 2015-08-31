@@ -426,7 +426,7 @@ var _ = Describe("DesiredLRPDB", func() {
 
 				err = etcdDB.UpdateDesiredLRP(logger, lrp.ProcessGuid, update)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("instances"))
+				Expect(err.Message).To(ContainSubstring("instances"))
 
 				desiredAfterUpdate, err := etcdDB.DesiredLRPByProcessGuid(logger, lrp.ProcessGuid)
 				Expect(err).NotTo(HaveOccurred())

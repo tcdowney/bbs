@@ -156,14 +156,14 @@ type FakeLRPDB struct {
 	convergeLRPsArgsForCall []struct {
 		logger lager.Logger
 	}
-	GatherAndPruneLRPsStub        func(logger lager.Logger) (*models.ConvergenceInput, error)
+	GatherAndPruneLRPsStub        func(logger lager.Logger) (*models.ConvergenceInput, *models.Error)
 	gatherAndPruneLRPsMutex       sync.RWMutex
 	gatherAndPruneLRPsArgsForCall []struct {
 		logger lager.Logger
 	}
 	gatherAndPruneLRPsReturns struct {
 		result1 *models.ConvergenceInput
-		result2 error
+		result2 *models.Error
 	}
 }
 
@@ -667,7 +667,7 @@ func (fake *FakeLRPDB) ConvergeLRPsArgsForCall(i int) lager.Logger {
 	return fake.convergeLRPsArgsForCall[i].logger
 }
 
-func (fake *FakeLRPDB) GatherAndPruneLRPs(logger lager.Logger) (*models.ConvergenceInput, error) {
+func (fake *FakeLRPDB) GatherAndPruneLRPs(logger lager.Logger) (*models.ConvergenceInput, *models.Error) {
 	fake.gatherAndPruneLRPsMutex.Lock()
 	fake.gatherAndPruneLRPsArgsForCall = append(fake.gatherAndPruneLRPsArgsForCall, struct {
 		logger lager.Logger
@@ -692,11 +692,11 @@ func (fake *FakeLRPDB) GatherAndPruneLRPsArgsForCall(i int) lager.Logger {
 	return fake.gatherAndPruneLRPsArgsForCall[i].logger
 }
 
-func (fake *FakeLRPDB) GatherAndPruneLRPsReturns(result1 *models.ConvergenceInput, result2 error) {
+func (fake *FakeLRPDB) GatherAndPruneLRPsReturns(result1 *models.ConvergenceInput, result2 *models.Error) {
 	fake.GatherAndPruneLRPsStub = nil
 	fake.gatherAndPruneLRPsReturns = struct {
 		result1 *models.ConvergenceInput
-		result2 error
+		result2 *models.Error
 	}{result1, result2}
 }
 

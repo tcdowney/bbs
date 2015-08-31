@@ -71,7 +71,7 @@ func (db *ETCDDB) taskByGuidWithIndex(logger lager.Logger, taskGuid string) (*mo
 	task := new(models.Task)
 	deserializeErr := db.deserializeModel(logger, node, task)
 	if deserializeErr != nil {
-		logger.Error("failed-parsing-desired-task", deserializeErr)
+		logger.Error("failed-parsing-desired-task", deserializeErr.ToError())
 		return nil, 0, models.ErrDeserializeJSON
 	}
 
@@ -124,7 +124,7 @@ func (db *ETCDDB) StartTask(logger lager.Logger, taskGuid, cellID string) (bool,
 
 	task, index, modelErr := db.taskByGuidWithIndex(logger, taskGuid)
 	if modelErr != nil {
-		logger.Error("failed-to-fetch-task", modelErr)
+		logger.Error("failed-to-fetch-task", modelErr.ToError())
 		return false, modelErr
 	}
 
@@ -137,7 +137,7 @@ func (db *ETCDDB) StartTask(logger lager.Logger, taskGuid, cellID string) (bool,
 
 	modelErr = validateStateTransition(task.State, models.Task_Running)
 	if modelErr != nil {
-		logger.Error("invalid-state-transition", modelErr)
+		logger.Error("invalid-state-transition", modelErr.ToError())
 		return false, modelErr
 	}
 
@@ -170,14 +170,14 @@ func (db *ETCDDB) CancelTask(logger lager.Logger, taskGuid string) *models.Error
 
 	task, index, modelErr := db.taskByGuidWithIndex(logger, taskGuid)
 	if modelErr != nil {
-		logger.Error("failed-to-fetch-task", modelErr)
+		logger.Error("failed-to-fetch-task", modelErr.ToError())
 		return modelErr
 	}
 	logger.Info("succeeded-getting-task")
 
 	if task.State == models.Task_Resolving || task.State == models.Task_Completed {
 		modelErr = models.NewTaskTransitionError(task.State, models.Task_Completed)
-		logger.Error("invalid-state-transition", modelErr)
+		logger.Error("invalid-state-transition", modelErr.ToError())
 		return modelErr
 	}
 
@@ -185,7 +185,7 @@ func (db *ETCDDB) CancelTask(logger lager.Logger, taskGuid string) *models.Error
 	cellId := task.CellId
 	modelErr = db.completeTask(logger, task, index, true, "task was cancelled", "")
 	if modelErr != nil {
-		logger.Error("failed-completing-task", modelErr)
+		logger.Error("failed-completing-task", modelErr.ToError())
 		return modelErr
 	}
 	logger.Info("succeeded-completing-task")
@@ -197,7 +197,7 @@ func (db *ETCDDB) CancelTask(logger lager.Logger, taskGuid string) *models.Error
 	logger.Info("getting-cell-info")
 	cellPresence, modelErr := db.cellDB.CellById(logger, cellId)
 	if modelErr != nil {
-		logger.Error("failed-getting-cell-info", modelErr)
+		logger.Error("failed-getting-cell-info", modelErr.ToError())
 		return nil
 	}
 	logger.Info("succeeded-getting-cell-info")
@@ -222,14 +222,14 @@ func (db *ETCDDB) FailTask(logger lager.Logger, taskGuid, failureReason string) 
 	logger.Info("getting-task")
 	task, index, modelErr := db.taskByGuidWithIndex(logger, taskGuid)
 	if modelErr != nil {
-		logger.Error("failed-getting-task", modelErr)
+		logger.Error("failed-getting-task", modelErr.ToError())
 		return modelErr
 	}
 	logger.Info("succeeded-getting-task")
 
 	if task.State == models.Task_Resolving || task.State == models.Task_Completed {
 		modelErr = models.NewTaskTransitionError(task.State, models.Task_Completed)
-		logger.Error("invalid-state-transition", modelErr)
+		logger.Error("invalid-state-transition", modelErr.ToError())
 		return modelErr
 	}
 
@@ -249,20 +249,20 @@ func (db *ETCDDB) CompleteTask(logger lager.Logger, taskGuid, cellId string, fai
 	logger.Info("getting-task")
 	task, index, modelErr := db.taskByGuidWithIndex(logger, taskGuid)
 	if modelErr != nil {
-		logger.Error("failed-getting-task", modelErr)
+		logger.Error("failed-getting-task", modelErr.ToError())
 		return modelErr
 	}
 	logger.Info("succeeded-getting-task")
 
 	if task.State == models.Task_Running && task.CellId != cellId {
 		modelErr = models.NewRunningOnDifferentCellError(cellId, task.CellId)
-		logger.Error("invalid-cell-id", modelErr)
+		logger.Error("invalid-cell-id", modelErr.ToError())
 		return modelErr
 	}
 
 	modelErr = validateStateTransition(task.State, models.Task_Completed)
 	if modelErr != nil {
-		logger.Error("invalid-state-transition", modelErr)
+		logger.Error("invalid-state-transition", modelErr.ToError())
 		return modelErr
 	}
 
@@ -316,14 +316,14 @@ func (db *ETCDDB) ResolvingTask(logger lager.Logger, taskGuid string) *models.Er
 	logger.Info("getting-task")
 	task, index, modelErr := db.taskByGuidWithIndex(logger, taskGuid)
 	if modelErr != nil {
-		logger.Error("failed-getting-task", modelErr)
+		logger.Error("failed-getting-task", modelErr.ToError())
 		return modelErr
 	}
 	logger.Info("succeeded-getting-task")
 
 	modelErr = validateStateTransition(task.State, models.Task_Resolving)
 	if modelErr != nil {
-		logger.Error("invalid-state-transition", modelErr)
+		logger.Error("invalid-state-transition", modelErr.ToError())
 		return modelErr
 	}
 
@@ -354,14 +354,14 @@ func (db *ETCDDB) DeleteTask(logger lager.Logger, taskGuid string) *models.Error
 	logger.Info("getting-task")
 	task, _, modelErr := db.taskByGuidWithIndex(logger, taskGuid)
 	if modelErr != nil {
-		logger.Error("failed-getting-task", modelErr)
+		logger.Error("failed-getting-task", modelErr.ToError())
 		return modelErr
 	}
 	logger.Info("succeeded-getting-task")
 
 	if task.State != models.Task_Resolving {
 		modelErr = models.NewTaskTransitionError(task.State, models.Task_Resolving)
-		logger.Error("invalid-state-transition", modelErr)
+		logger.Error("invalid-state-transition", modelErr.ToError())
 		return modelErr
 	}
 
@@ -375,9 +375,6 @@ func validateStateTransition(from, to models.Task_State) *models.Error {
 		(from == models.Task_Completed && to == models.Task_Resolving) {
 		return nil
 	} else {
-		return &models.Error{
-			Type:    models.InvalidStateTransition,
-			Message: fmt.Sprintf("Cannot transition from %s to %s", from.String(), to.String()),
-		}
+		return models.NewError(models.Error_InvalidStateTransition, fmt.Sprintf("Cannot transition from %s to %s", from.String(), to.String()))
 	}
 }

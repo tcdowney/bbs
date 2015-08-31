@@ -177,7 +177,7 @@ func (db *ETCDDB) ClaimActualLRP(logger lager.Logger, processGuid string, index 
 
 	lrp, prevIndex, bbsErr := db.rawActuaLLRPByProcessGuidAndIndex(logger, processGuid, index)
 	if bbsErr != nil {
-		logger.Error("failed", bbsErr)
+		logger.Error("failed", bbsErr.ToError())
 		return bbsErr
 	}
 
@@ -194,7 +194,7 @@ func (db *ETCDDB) ClaimActualLRP(logger lager.Logger, processGuid string, index 
 	err := lrp.Validate()
 	if err != nil {
 		logger.Error("failed", err)
-		return &models.Error{Type: models.InvalidRecord, Message: err.Error()}
+		return models.NewError(models.Error_InvalidRecord, err.Error())
 	}
 
 	lrpRawJSON, err := json.Marshal(lrp)
@@ -213,18 +213,18 @@ func (db *ETCDDB) ClaimActualLRP(logger lager.Logger, processGuid string, index 
 	return nil
 }
 
-func (db *ETCDDB) createActualLRP(logger lager.Logger, desiredLRP *models.DesiredLRP, index int32) error {
+func (db *ETCDDB) createActualLRP(logger lager.Logger, desiredLRP *models.DesiredLRP, index int32) *models.Error {
 	logger = logger.Session("create-actual-lrp")
-	var err error
+	var modelErr *models.Error
 	if index >= desiredLRP.Instances {
-		err = &models.Error{Type: models.InvalidRecord, Message: "Index too large"}
-		logger.Error("actual-lrp-index-too-large", err, lager.Data{"actual-index": index, "desired-instances": desiredLRP.Instances})
-		return err
+		modelErr = models.NewError(models.Error_InvalidRecord, "Index too large")
+		logger.Error("actual-lrp-index-too-large", modelErr.ToError(), lager.Data{"actual-index": index, "desired-instances": desiredLRP.Instances})
+		return modelErr
 	}
 
 	guid, err := uuid.NewV4()
 	if err != nil {
-		return err
+		return models.NewError(models.Error_UnknownError, "failed to create guid")
 	}
 
 	actualLRP := &models.ActualLRP{
@@ -241,7 +241,7 @@ func (db *ETCDDB) createActualLRP(logger lager.Logger, desiredLRP *models.Desire
 		},
 	}
 
-	modelErr := db.createRawActualLRP(logger, actualLRP)
+	modelErr = db.createRawActualLRP(logger, actualLRP)
 	if modelErr != nil {
 		return modelErr
 	}
@@ -330,7 +330,7 @@ func (db *ETCDDB) createUnclaimedActualLRPs(logger lager.Logger, keys []*models.
 		works[i] = func() {
 			err := db.createUnclaimedActualLRP(logger, key)
 			if err != nil {
-				logger.Info("failed-creating-actual-lrp", lager.Data{"actual_lrp_key": key, "err-message": err.Error()})
+				logger.Info("failed-creating-actual-lrp", lager.Data{"actual_lrp_key": key, "err-message": err.Message})
 			} else {
 				createdIndicesChan <- uint(key.Index)
 			}
@@ -385,7 +385,7 @@ func (db *ETCDDB) StartActualLRP(logger lager.Logger, key *models.ActualLRPKey, 
 	if bbsErr == models.ErrResourceNotFound {
 		return db.createRunningActualLRP(logger, key, instanceKey, netInfo)
 	} else if bbsErr != nil {
-		logger.Error("failed-to-get-actual-lrp", bbsErr)
+		logger.Error("failed-to-get-actual-lrp", bbsErr.ToError())
 		return bbsErr
 	}
 
@@ -430,7 +430,7 @@ func (db *ETCDDB) CrashActualLRP(logger lager.Logger, key *models.ActualLRPKey, 
 
 	lrp, prevIndex, bbsErr := db.rawActuaLLRPByProcessGuidAndIndex(logger, key.ProcessGuid, key.Index)
 	if bbsErr != nil {
-		logger.Error("failed-to-get-actual-lrp", bbsErr)
+		logger.Error("failed-to-get-actual-lrp", bbsErr.ToError())
 		return bbsErr
 	}
 
@@ -519,7 +519,7 @@ func (db *ETCDDB) FailActualLRP(logger lager.Logger, key *models.ActualLRPKey, e
 	logger.Info("starting")
 	lrp, prevIndex, bbsErr := db.rawActuaLLRPByProcessGuidAndIndex(logger, key.ProcessGuid, key.Index)
 	if bbsErr != nil {
-		logger.Error("failed-to-get-actual-lrp", bbsErr)
+		logger.Error("failed-to-get-actual-lrp", bbsErr.ToError())
 		return bbsErr
 	}
 
@@ -600,7 +600,7 @@ func (db *ETCDDB) RetireActualLRP(logger lager.Logger, key *models.ActualLRPKey)
 		}
 
 		if i+1 < models.RetireActualLRPRetryAttempts {
-			logger.Error("retrying-failed-retire-of-actual-lrp", err, lager.Data{"attempt": i + 1})
+			logger.Error("retrying-failed-retire-of-actual-lrp", err.ToError(), lager.Data{"attempt": i + 1})
 		}
 	}
 
@@ -618,7 +618,7 @@ func (db *ETCDDB) retireActualLRPs(logger lager.Logger, keys []*models.ActualLRP
 		works[i] = func() {
 			err := db.RetireActualLRP(logger, key)
 			if err != nil {
-				logger.Error("failed-to-retire", err, lager.Data{"lrp-key": key})
+				logger.Error("failed-to-retire", err.ToError(), lager.Data{"lrp-key": key})
 			}
 		}
 	}
@@ -715,7 +715,7 @@ func (db *ETCDDB) unclaimActualLRPWithIndex(
 		logger.Debug("complete", lager.Data{"stateChange": change, "error": modelErr})
 	}()
 	if !lrp.ActualLRPKey.Equal(actualLRPKey) {
-		logger.Error("failed-actual-lrp-key-differs", models.ErrActualLRPCannotBeUnclaimed)
+		logger.Error("failed-actual-lrp-key-differs", models.ErrActualLRPCannotBeUnclaimed.ToError())
 		return stateDidNotChange, models.ErrActualLRPCannotBeUnclaimed
 	}
 
@@ -725,7 +725,7 @@ func (db *ETCDDB) unclaimActualLRPWithIndex(
 	}
 
 	if !lrp.ActualLRPInstanceKey.Equal(actualLRPInstanceKey) {
-		logger.Error("failed-actual-lrp-instance-key-differs", models.ErrActualLRPCannotBeUnclaimed)
+		logger.Error("failed-actual-lrp-instance-key-differs", models.ErrActualLRPCannotBeUnclaimed.ToError())
 		return stateDidNotChange, models.ErrActualLRPCannotBeUnclaimed
 	}
 
@@ -738,7 +738,7 @@ func (db *ETCDDB) unclaimActualLRPWithIndex(
 	err := lrp.Validate()
 	if err != nil {
 		logger.Error("failed-to-validate-unclaimed-lrp", err)
-		return stateDidNotChange, &models.Error{Type: models.InvalidRecord, Message: err.Error()}
+		return stateDidNotChange, models.NewError(models.Error_InvalidRecord, err.Error())
 	}
 
 	lrpRawJSON, err := json.Marshal(lrp)

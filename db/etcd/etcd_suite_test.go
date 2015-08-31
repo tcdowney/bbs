@@ -102,10 +102,9 @@ var _ = BeforeEach(func() {
 })
 
 func registerCell(cell models.CellPresence) {
-	var err error
-	jsonBytes, err := models.ToJSON(cell)
-	Expect(err).NotTo(HaveOccurred())
+	jsonBytes, modelErr := models.ToJSON(cell)
+	Expect(modelErr).NotTo(HaveOccurred())
 
-	_, err = consulSession.SetPresence(consul.CellSchemaPath(cell.CellID), jsonBytes)
+	_, err := consulSession.SetPresence(consul.CellSchemaPath(cell.CellID), jsonBytes)
 	Expect(err).NotTo(HaveOccurred())
 }

@@ -33,7 +33,7 @@ func (db *ETCDDB) ConvergeLRPs(logger lager.Logger) {
 	logger.Debug("gathering-convergence-input")
 	input, err := db.GatherAndPruneLRPs(logger)
 	if err != nil {
-		logger.Error("failed-gathering-convergence-input", err)
+		logger.Error("failed-gathering-convergence-input", err.ToError())
 		return
 	}
 	logger.Debug("succeeded-gathering-convergence-input")
@@ -43,14 +43,14 @@ func (db *ETCDDB) ConvergeLRPs(logger lager.Logger) {
 	db.ResolveConvergence(logger, input.DesiredLRPs, changes)
 }
 
-func (db *ETCDDB) GatherAndPruneLRPs(logger lager.Logger) (*models.ConvergenceInput, error) {
+func (db *ETCDDB) GatherAndPruneLRPs(logger lager.Logger) (*models.ConvergenceInput, *models.Error) {
 	guids := map[string]struct{}{}
 
 	// always fetch actualLRPs before desiredLRPs to ensure correctness
 	logger.Info("gathering-and-pruning-actual-lrps")
 	actuals, err := db.gatherAndPruneActualLRPs(logger, guids) // modifies guids
 	if err != nil {
-		logger.Error("failed-gathering-and-pruning-actual-lrps", err)
+		logger.Error("failed-gathering-and-pruning-actual-lrps", err.ToError())
 		return &models.ConvergenceInput{}, err
 	}
 	logger.Info("succeeded-gathering-and-pruning-actual-lrps")
@@ -59,13 +59,14 @@ func (db *ETCDDB) GatherAndPruneLRPs(logger lager.Logger) (*models.ConvergenceIn
 	logger.Info("gathering-and-pruning-desired-lrps")
 	desireds, err := db.gatherAndPruneDesiredLRPs(logger, guids) // modifies guids
 	if err != nil {
-		logger.Error("failed-gathering-and-pruning-desired-lrps", err)
+		logger.Error("failed-gathering-and-pruning-desired-lrps", err.ToError())
 		return &models.ConvergenceInput{}, err
 	}
 	logger.Info("succeeded-gathering-and-pruning-desired-lrps")
 
 	logger.Debug("listing-domains")
-	domains, _ := db.Domains(logger)
+	// TODO: test me
+	domains, err := db.Domains(logger)
 	if err != nil {
 		return &models.ConvergenceInput{}, err
 	}
@@ -93,7 +94,7 @@ func (db *ETCDDB) GatherAndPruneLRPs(logger lager.Logger) (*models.ConvergenceIn
 	}, nil
 }
 
-func (db *ETCDDB) gatherAndPruneActualLRPs(logger lager.Logger, guids map[string]struct{}) (map[string]map[int32]*models.ActualLRP, error) {
+func (db *ETCDDB) gatherAndPruneActualLRPs(logger lager.Logger, guids map[string]struct{}) (map[string]map[int32]*models.ActualLRP, *models.Error) {
 	response, modelErr := db.fetchRecursiveRaw(logger, ActualLRPSchemaRoot)
 
 	if modelErr == models.ErrResourceNotFound {
@@ -218,7 +219,7 @@ func (db *ETCDDB) deleteLeaves(logger lager.Logger, keys []string) error {
 	return nil
 }
 
-func (db *ETCDDB) gatherAndPruneDesiredLRPs(logger lager.Logger, guids map[string]struct{}) (map[string]*models.DesiredLRP, error) {
+func (db *ETCDDB) gatherAndPruneDesiredLRPs(logger lager.Logger, guids map[string]struct{}) (map[string]*models.DesiredLRP, *models.Error) {
 	response, modelErr := db.fetchRecursiveRaw(logger, DesiredLRPSchemaRoot)
 
 	if modelErr == models.ErrResourceNotFound {
@@ -435,7 +436,7 @@ func (db *ETCDDB) resolveActualsToBeRetired(logger lager.Logger, actual *models.
 		logger.Debug("retiring-actual-lrp")
 		retireErr := db.RetireActualLRP(logger, &actual.ActualLRPKey)
 		if retireErr != nil {
-			logger.Error("failed-retiring-actual-lrp", retireErr)
+			logger.Error("failed-retiring-actual-lrp", retireErr.ToError())
 			return
 		}
 		logger.Debug("succeeded-retiring-actual-lrp")
@@ -452,7 +453,7 @@ func (db *ETCDDB) resolveActualsWithMissingCells(logger lager.Logger, desired *m
 		logger.Debug("removing-actual-lrp")
 		removeErr := db.RemoveActualLRP(logger, actual.ActualLRPKey.ProcessGuid, actual.ActualLRPKey.Index)
 		if removeErr != nil {
-			logger.Error("failed-removing-actual-lrp", removeErr)
+			logger.Error("failed-removing-actual-lrp", removeErr.ToError())
 			return
 		}
 		logger.Debug("succeeded-removing-actual-lrp")
@@ -464,7 +465,7 @@ func (db *ETCDDB) resolveActualsWithMissingCells(logger lager.Logger, desired *m
 		logger.Debug("creating-actual-lrp")
 		err := db.createActualLRP(logger, desired, actual.Index)
 		if err != nil {
-			logger.Error("failed-creating-actual-lrp", err)
+			logger.Error("failed-creating-actual-lrp", err.ToError())
 			return
 		}
 		logger.Debug("succeeded-creating-actual-lrp")
@@ -483,7 +484,7 @@ func (db *ETCDDB) resolveActualsWithMissingIndices(logger lager.Logger, desired 
 		logger.Debug("creating-actual-lrp")
 		err := db.createActualLRP(logger, desired, actualKey.Index)
 		if err != nil {
-			logger.Error("failed-creating-actual-lrp", err)
+			logger.Error("failed-creating-actual-lrp", err.ToError())
 			return
 		}
 		logger.Debug("succeeded-creating-actual-lrp")
@@ -509,7 +510,7 @@ func (db *ETCDDB) resolveRestartableCrashedActualLRPS(logger lager.Logger, actua
 		logger.Debug("unclaiming-actual-lrp", lager.Data{"ProcessGuid": actualLRP.ActualLRPKey.ProcessGuid, "Index": actualLRP.ActualLRPKey.Index})
 		_, err := db.unclaimActualLRP(logger, &actualLRP.ActualLRPKey, &actualLRP.ActualLRPInstanceKey)
 		if err != nil {
-			logger.Error("failed-unclaiming-crash", err)
+			logger.Error("failed-unclaiming-crash", err.ToError())
 			return
 		}
 		logger.Debug("succeeded-unclaiming-actual-lrp")

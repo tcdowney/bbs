@@ -32,7 +32,7 @@ func (db *ETCDDB) EvacuateClaimedActualLRP(logger lager.Logger, key *models.Actu
 
 	err = db.requestLRPAuctionForLRPKey(logger, key)
 	if err != nil {
-		logger.Error("failed-requesting-start-lrp-auction", err)
+		logger.Error("failed-requesting-start-lrp-auction", err.ToError())
 		return false, err
 	}
 
@@ -111,7 +111,7 @@ func (db *ETCDDB) EvacuateRunningActualLRP(logger lager.Logger, key *models.Actu
 		logger.Info("requesting-start-lrp-auction")
 		err = db.requestLRPAuctionForLRPKey(logger, key)
 		if err != nil {
-			logger.Error("failed-requesting-start-lrp-auction", err)
+			logger.Error("failed-requesting-start-lrp-auction", err.ToError())
 		} else {
 			logger.Info("succeeded-requesting-start-lrp-auction")
 		}

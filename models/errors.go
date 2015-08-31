@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func NewError(errType string, msg string) *Error {
+func NewError(errType Error_Type, msg string) *Error {
 	return &Error{
 		Type:    errType,
 		Message: msg,
@@ -16,139 +16,98 @@ func (err *Error) ToError() error {
 	if err == nil {
 		return nil
 	}
-	return err
+	return errors.New(err.Message)
 }
-
-func (err *Error) Error() string {
-	return err.GetMessage()
-}
-
-const (
-	InvalidDomain = "InvalidDomain"
-
-	UnkownVersion          = "UnkownVersion"
-	InvalidRecord          = "InvalidRecord"
-	InvalidRequest         = "InvalidRequest"
-	InvalidResponse        = "InvalidResponse"
-	InvalidProtobufMessage = "InvalidProtobufMessage"
-	InvalidJSON            = "InvalidJSON"
-	FailedToOpenEnvelope   = "FailedToOpenEnvelope"
-	InvalidStateTransition = "InvalidStateTransition"
-
-	UnknownError = "UnknownError"
-	Unauthorized = "Unauthorized"
-
-	ResourceConflict = "ResourceConflict"
-	ResourceExists   = "ResourceExists"
-	ResourceNotFound = "ResourceNotFound"
-	RouterError      = "RouterError"
-
-	ActualLRPCannotBeClaimed   = "ActualLRPCannotBeClaimed"
-	ActualLRPCannotBeStarted   = "ActualLRPCannotBeStarted"
-	ActualLRPCannotBeCrashed   = "ActualLRPCannotBeCrashed"
-	ActualLRPCannotBeFailed    = "ActualLRPCannotBeFailed"
-	ActualLRPCannotBeRemoved   = "ActualLRPCannotBeRemoved"
-	ActualLRPCannotBeStopped   = "ActualLRPCannotBeStopped"
-	ActualLRPCannotBeUnclaimed = "ActualLRPCannotBeUnclaimed"
-	ActualLRPCannotBeEvacuated = "ActualLRPCannotBeEvacuated"
-
-	DesiredLRPCannotBeUpdated = "DesiredLRPCannotBeUpdated"
-
-	RunningOnDifferentCell = "RunningOnDifferentCell"
-)
 
 var (
 	ErrResourceNotFound = &Error{
-		Type:    ResourceNotFound,
+		Type:    Error_ResourceNotFound,
 		Message: "the requested resource could not be found",
 	}
 
 	ErrResourceExists = &Error{
-		Type:    ResourceExists,
+		Type:    Error_ResourceExists,
 		Message: "the requested resource already exists",
 	}
 
 	ErrResourceConflict = &Error{
-		Type:    ResourceConflict,
+		Type:    Error_ResourceConflict,
 		Message: "the requested resource is in a conflicting state",
 	}
 
 	ErrBadRequest = &Error{
-		Type:    InvalidRequest,
+		Type:    Error_InvalidRequest,
 		Message: "the request received is invalid",
 	}
 
 	ErrUnknownError = &Error{
-		Type:    UnknownError,
+		Type:    Error_UnknownError,
 		Message: "the request failed for an unknown reason",
 	}
 
 	ErrSerializeJSON = &Error{
-		Type:    InvalidJSON,
+		Type:    Error_InvalidJson,
 		Message: "could not serialize JSON",
 	}
 
 	ErrDeserializeJSON = &Error{
-		Type:    InvalidJSON,
+		Type:    Error_InvalidJson,
 		Message: "could not deserialize JSON",
 	}
 
 	ErrFailedToOpenEnvelope = &Error{
-		Type:    FailedToOpenEnvelope,
+		Type:    Error_FailedToOpenEnvelope,
 		Message: "could not open envelope",
 	}
 
 	ErrActualLRPCannotBeClaimed = &Error{
-		Type:    ActualLRPCannotBeClaimed,
+		Type:    Error_ActualLRPCannotBeClaimed,
 		Message: "cannot claim actual LRP",
 	}
 
 	ErrActualLRPCannotBeStarted = &Error{
-		Type:    ActualLRPCannotBeStarted,
+		Type:    Error_ActualLRPCannotBeStarted,
 		Message: "cannot start actual LRP",
 	}
 
 	ErrActualLRPCannotBeCrashed = &Error{
-		Type:    ActualLRPCannotBeCrashed,
+		Type:    Error_ActualLRPCannotBeCrashed,
 		Message: "cannot crash actual LRP",
 	}
 
 	ErrActualLRPCannotBeFailed = &Error{
-		Type:    ActualLRPCannotBeFailed,
+		Type:    Error_ActualLRPCannotBeFailed,
 		Message: "cannot fail actual LRP",
 	}
 
 	ErrActualLRPCannotBeRemoved = &Error{
-		Type:    ActualLRPCannotBeRemoved,
+		Type:    Error_ActualLRPCannotBeRemoved,
 		Message: "cannot remove actual LRP",
 	}
 
 	ErrActualLRPCannotBeStopped = &Error{
-		Type:    ActualLRPCannotBeStopped,
+		Type:    Error_ActualLRPCannotBeStopped,
 		Message: "cannot stop actual LRP",
 	}
 
 	ErrActualLRPCannotBeUnclaimed = &Error{
-		Type:    ActualLRPCannotBeUnclaimed,
+		Type:    Error_ActualLRPCannotBeUnclaimed,
 		Message: "cannot unclaim actual LRP",
 	}
 
 	ErrActualLRPCannotBeEvacuated = &Error{
-		Type:    ActualLRPCannotBeEvacuated,
+		Type:    Error_ActualLRPCannotBeEvacuated,
 		Message: "cannot evacuate actual LRP",
 	}
 
 	ErrDesiredLRPCannotBeUpdated = &Error{
-		Type:    DesiredLRPCannotBeUpdated,
+		Type:    Error_DesiredLRPCannotBeUpdated,
 		Message: "cannot update desired LRP",
 	}
 )
 
-func (err *Error) Equal(other error) bool {
-	if e, ok := other.(*Error); ok {
-		return e.GetType() == err.GetType()
-	}
-	return false
+func (err *Error) Equal(other *Error) bool {
+	return err.GetType() == other.GetType()
 }
 
 type ErrInvalidField struct {
@@ -171,14 +130,14 @@ var ErrActualLRPGroupInvalid = errors.New("ActualLRPGroup invalid")
 
 func NewTaskTransitionError(from, to Task_State) *Error {
 	return &Error{
-		Type:    InvalidStateTransition,
+		Type:    Error_InvalidStateTransition,
 		Message: fmt.Sprintf("Cannot transition from %s to %s", from.String(), to.String()),
 	}
 }
 
 func NewRunningOnDifferentCellError(expectedCellId, actualCellId string) *Error {
 	return &Error{
-		Type:    RunningOnDifferentCell,
+		Type:    Error_RunningOnDifferentCell,
 		Message: fmt.Sprintf("Running on cell %s not %s", actualCellId, expectedCellId),
 	}
 }

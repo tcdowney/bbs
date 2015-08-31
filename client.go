@@ -28,54 +28,54 @@ const (
 //go:generate counterfeiter -o fake_bbs/fake_client.go . Client
 
 type Client interface {
-	Domains() ([]string, error)
-	UpsertDomain(domain string, ttl time.Duration) error
+	Domains() ([]string, *models.Error)
+	UpsertDomain(domain string, ttl time.Duration) *models.Error
 
-	ActualLRPGroups(models.ActualLRPFilter) ([]*models.ActualLRPGroup, error)
-	ActualLRPGroupsByProcessGuid(processGuid string) ([]*models.ActualLRPGroup, error)
-	ActualLRPGroupByProcessGuidAndIndex(processGuid string, index int) (*models.ActualLRPGroup, error)
+	ActualLRPGroups(models.ActualLRPFilter) ([]*models.ActualLRPGroup, *models.Error)
+	ActualLRPGroupsByProcessGuid(processGuid string) ([]*models.ActualLRPGroup, *models.Error)
+	ActualLRPGroupByProcessGuidAndIndex(processGuid string, index int) (*models.ActualLRPGroup, *models.Error)
 
-	ClaimActualLRP(processGuid string, index int, instanceKey *models.ActualLRPInstanceKey) error
-	StartActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, netInfo *models.ActualLRPNetInfo) error
-	CrashActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, errorMessage string) error
-	FailActualLRP(key *models.ActualLRPKey, errorMessage string) error
-	RemoveActualLRP(processGuid string, index int) error
-	RetireActualLRP(key *models.ActualLRPKey) error
+	ClaimActualLRP(processGuid string, index int, instanceKey *models.ActualLRPInstanceKey) *models.Error
+	StartActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, netInfo *models.ActualLRPNetInfo) *models.Error
+	CrashActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, errorMessage string) *models.Error
+	FailActualLRP(key *models.ActualLRPKey, errorMessage string) *models.Error
+	RemoveActualLRP(processGuid string, index int) *models.Error
+	RetireActualLRP(key *models.ActualLRPKey) *models.Error
 
-	EvacuateClaimedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (bool, error)
-	EvacuateRunningActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey, *models.ActualLRPNetInfo, uint64) (bool, error)
-	EvacuateStoppedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (bool, error)
-	EvacuateCrashedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey, string) (bool, error)
-	RemoveEvacuatingActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) error
+	EvacuateClaimedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (bool, *models.Error)
+	EvacuateRunningActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey, *models.ActualLRPNetInfo, uint64) (bool, *models.Error)
+	EvacuateStoppedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) (bool, *models.Error)
+	EvacuateCrashedActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey, string) (bool, *models.Error)
+	RemoveEvacuatingActualLRP(*models.ActualLRPKey, *models.ActualLRPInstanceKey) *models.Error
 
-	DesiredLRPs(models.DesiredLRPFilter) ([]*models.DesiredLRP, error)
-	DesiredLRPByProcessGuid(processGuid string) (*models.DesiredLRP, error)
+	DesiredLRPs(models.DesiredLRPFilter) ([]*models.DesiredLRP, *models.Error)
+	DesiredLRPByProcessGuid(processGuid string) (*models.DesiredLRP, *models.Error)
 
-	DesireLRP(*models.DesiredLRP) error
-	UpdateDesiredLRP(processGuid string, update *models.DesiredLRPUpdate) error
-	RemoveDesiredLRP(processGuid string) error
+	DesireLRP(*models.DesiredLRP) *models.Error
+	UpdateDesiredLRP(processGuid string, update *models.DesiredLRPUpdate) *models.Error
+	RemoveDesiredLRP(processGuid string) *models.Error
 
-	ConvergeLRPs() error
+	ConvergeLRPs() *models.Error
 
 	// Public Task Methods
-	Tasks() ([]*models.Task, error)
-	TasksByDomain(domain string) ([]*models.Task, error)
-	TasksByCellID(cellId string) ([]*models.Task, error)
-	TaskByGuid(guid string) (*models.Task, error)
+	Tasks() ([]*models.Task, *models.Error)
+	TasksByDomain(domain string) ([]*models.Task, *models.Error)
+	TasksByCellID(cellId string) ([]*models.Task, *models.Error)
+	TaskByGuid(guid string) (*models.Task, *models.Error)
 
-	DesireTask(guid, domain string, def *models.TaskDefinition) error
-	CancelTask(taskGuid string) error
-	FailTask(taskGuid, failureReason string) error
-	CompleteTask(taskGuid, cellId string, failed bool, failureReason, result string) error
-	ResolvingTask(taskGuid string) error
-	DeleteTask(taskGuid string) error
+	DesireTask(guid, domain string, def *models.TaskDefinition) *models.Error
+	CancelTask(taskGuid string) *models.Error
+	FailTask(taskGuid, failureReason string) *models.Error
+	CompleteTask(taskGuid, cellId string, failed bool, failureReason, result string) *models.Error
+	ResolvingTask(taskGuid string) *models.Error
+	DeleteTask(taskGuid string) *models.Error
 
-	ConvergeTasks(kickTaskDuration, expirePendingTaskDuration, expireCompletedTaskDuration time.Duration) error
+	ConvergeTasks(kickTaskDuration, expirePendingTaskDuration, expireCompletedTaskDuration time.Duration) *models.Error
 
-	SubscribeToEvents() (events.EventSource, error)
+	SubscribeToEvents() (events.EventSource, *models.Error)
 
 	// Internal Task Methods
-	StartTask(taskGuid string, cellID string) (bool, error)
+	StartTask(taskGuid string, cellID string) (bool, *models.Error)
 }
 
 func NewClient(url string) Client {
@@ -94,16 +94,16 @@ type client struct {
 	reqGen *rata.RequestGenerator
 }
 
-func (c *client) Domains() ([]string, error) {
+func (c *client) Domains() ([]string, *models.Error) {
 	response := models.DomainsResponse{}
 	err := c.doRequest(DomainsRoute, nil, nil, nil, &response)
 	if err != nil {
 		return nil, err
 	}
-	return response.Domains, response.Error.ToError()
+	return response.Domains, response.Error
 }
 
-func (c *client) UpsertDomain(domain string, ttl time.Duration) error {
+func (c *client) UpsertDomain(domain string, ttl time.Duration) *models.Error {
 	request := models.UpsertDomainRequest{
 		Domain: domain,
 		Ttl:    uint32(ttl.Seconds()),
@@ -113,10 +113,10 @@ func (c *client) UpsertDomain(domain string, ttl time.Duration) error {
 	if err != nil {
 		return err
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) ActualLRPGroups(filter models.ActualLRPFilter) ([]*models.ActualLRPGroup, error) {
+func (c *client) ActualLRPGroups(filter models.ActualLRPFilter) ([]*models.ActualLRPGroup, *models.Error) {
 	request := models.ActualLRPGroupsRequest{
 		Domain: filter.Domain,
 		CellId: filter.CellID,
@@ -127,10 +127,10 @@ func (c *client) ActualLRPGroups(filter models.ActualLRPFilter) ([]*models.Actua
 		return nil, err
 	}
 
-	return response.ActualLrpGroups, response.Error.ToError()
+	return response.ActualLrpGroups, response.Error
 }
 
-func (c *client) ActualLRPGroupsByProcessGuid(processGuid string) ([]*models.ActualLRPGroup, error) {
+func (c *client) ActualLRPGroupsByProcessGuid(processGuid string) ([]*models.ActualLRPGroup, *models.Error) {
 	request := models.ActualLRPGroupsByProcessGuidRequest{
 		ProcessGuid: processGuid,
 	}
@@ -140,10 +140,10 @@ func (c *client) ActualLRPGroupsByProcessGuid(processGuid string) ([]*models.Act
 		return nil, err
 	}
 
-	return response.ActualLrpGroups, response.Error.ToError()
+	return response.ActualLrpGroups, response.Error
 }
 
-func (c *client) ActualLRPGroupByProcessGuidAndIndex(processGuid string, index int) (*models.ActualLRPGroup, error) {
+func (c *client) ActualLRPGroupByProcessGuidAndIndex(processGuid string, index int) (*models.ActualLRPGroup, *models.Error) {
 	request := models.ActualLRPGroupByProcessGuidAndIndexRequest{
 		ProcessGuid: processGuid,
 		Index:       int32(index),
@@ -154,10 +154,10 @@ func (c *client) ActualLRPGroupByProcessGuidAndIndex(processGuid string, index i
 		return nil, err
 	}
 
-	return response.ActualLrpGroup, response.Error.ToError()
+	return response.ActualLrpGroup, response.Error
 }
 
-func (c *client) ClaimActualLRP(processGuid string, index int, instanceKey *models.ActualLRPInstanceKey) error {
+func (c *client) ClaimActualLRP(processGuid string, index int, instanceKey *models.ActualLRPInstanceKey) *models.Error {
 	request := models.ClaimActualLRPRequest{
 		ProcessGuid:          processGuid,
 		Index:                int32(index),
@@ -168,10 +168,10 @@ func (c *client) ClaimActualLRP(processGuid string, index int, instanceKey *mode
 	if err != nil {
 		return err
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) StartActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, netInfo *models.ActualLRPNetInfo) error {
+func (c *client) StartActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, netInfo *models.ActualLRPNetInfo) *models.Error {
 	request := models.StartActualLRPRequest{
 		ActualLrpKey:         key,
 		ActualLrpInstanceKey: instanceKey,
@@ -183,10 +183,10 @@ func (c *client) StartActualLRP(key *models.ActualLRPKey, instanceKey *models.Ac
 		return err
 
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) CrashActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, errorMessage string) error {
+func (c *client) CrashActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, errorMessage string) *models.Error {
 	request := models.CrashActualLRPRequest{
 		ActualLrpKey:         key,
 		ActualLrpInstanceKey: instanceKey,
@@ -198,10 +198,10 @@ func (c *client) CrashActualLRP(key *models.ActualLRPKey, instanceKey *models.Ac
 		return err
 
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) FailActualLRP(key *models.ActualLRPKey, errorMessage string) error {
+func (c *client) FailActualLRP(key *models.ActualLRPKey, errorMessage string) *models.Error {
 	request := models.FailActualLRPRequest{
 		ActualLrpKey: key,
 		ErrorMessage: errorMessage,
@@ -212,10 +212,10 @@ func (c *client) FailActualLRP(key *models.ActualLRPKey, errorMessage string) er
 		return err
 
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) RetireActualLRP(key *models.ActualLRPKey) error {
+func (c *client) RetireActualLRP(key *models.ActualLRPKey) *models.Error {
 	request := models.RetireActualLRPRequest{
 		ActualLrpKey: key,
 	}
@@ -225,10 +225,10 @@ func (c *client) RetireActualLRP(key *models.ActualLRPKey) error {
 		return err
 
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) RemoveActualLRP(processGuid string, index int) error {
+func (c *client) RemoveActualLRP(processGuid string, index int) *models.Error {
 	request := models.RemoveActualLRPRequest{
 		ProcessGuid: processGuid,
 		Index:       int32(index),
@@ -238,17 +238,17 @@ func (c *client) RemoveActualLRP(processGuid string, index int) error {
 	if err != nil {
 		return err
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) EvacuateClaimedActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) (bool, error) {
+func (c *client) EvacuateClaimedActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) (bool, *models.Error) {
 	return c.doEvacRequest(EvacuateClaimedActualLRPRoute, KeepContainer, &models.EvacuateClaimedActualLRPRequest{
 		ActualLrpKey:         key,
 		ActualLrpInstanceKey: instanceKey,
 	})
 }
 
-func (c *client) EvacuateCrashedActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, errorMessage string) (bool, error) {
+func (c *client) EvacuateCrashedActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, errorMessage string) (bool, *models.Error) {
 	return c.doEvacRequest(EvacuateCrashedActualLRPRoute, DeleteContainer, &models.EvacuateCrashedActualLRPRequest{
 		ActualLrpKey:         key,
 		ActualLrpInstanceKey: instanceKey,
@@ -256,14 +256,14 @@ func (c *client) EvacuateCrashedActualLRP(key *models.ActualLRPKey, instanceKey 
 	})
 }
 
-func (c *client) EvacuateStoppedActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) (bool, error) {
+func (c *client) EvacuateStoppedActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) (bool, *models.Error) {
 	return c.doEvacRequest(EvacuateStoppedActualLRPRoute, DeleteContainer, &models.EvacuateStoppedActualLRPRequest{
 		ActualLrpKey:         key,
 		ActualLrpInstanceKey: instanceKey,
 	})
 }
 
-func (c *client) EvacuateRunningActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, netInfo *models.ActualLRPNetInfo, ttl uint64) (bool, error) {
+func (c *client) EvacuateRunningActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey, netInfo *models.ActualLRPNetInfo, ttl uint64) (bool, *models.Error) {
 	return c.doEvacRequest(EvacuateRunningActualLRPRoute, KeepContainer, &models.EvacuateRunningActualLRPRequest{
 		ActualLrpKey:         key,
 		ActualLrpInstanceKey: instanceKey,
@@ -272,7 +272,7 @@ func (c *client) EvacuateRunningActualLRP(key *models.ActualLRPKey, instanceKey 
 	})
 }
 
-func (c *client) RemoveEvacuatingActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) error {
+func (c *client) RemoveEvacuatingActualLRP(key *models.ActualLRPKey, instanceKey *models.ActualLRPInstanceKey) *models.Error {
 	request := models.RemoveEvacuatingActualLRPRequest{
 		ActualLrpKey:         key,
 		ActualLrpInstanceKey: instanceKey,
@@ -284,10 +284,10 @@ func (c *client) RemoveEvacuatingActualLRP(key *models.ActualLRPKey, instanceKey
 		return err
 	}
 
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) DesiredLRPs(filter models.DesiredLRPFilter) ([]*models.DesiredLRP, error) {
+func (c *client) DesiredLRPs(filter models.DesiredLRPFilter) ([]*models.DesiredLRP, *models.Error) {
 	request := models.DesiredLRPsRequest{
 		Domain: filter.Domain,
 	}
@@ -297,10 +297,10 @@ func (c *client) DesiredLRPs(filter models.DesiredLRPFilter) ([]*models.DesiredL
 		return nil, err
 	}
 
-	return response.DesiredLrps, response.Error.ToError()
+	return response.DesiredLrps, response.Error
 }
 
-func (c *client) DesiredLRPByProcessGuid(processGuid string) (*models.DesiredLRP, error) {
+func (c *client) DesiredLRPByProcessGuid(processGuid string) (*models.DesiredLRP, *models.Error) {
 	request := models.DesiredLRPByProcessGuidRequest{
 		ProcessGuid: processGuid,
 	}
@@ -310,26 +310,26 @@ func (c *client) DesiredLRPByProcessGuid(processGuid string) (*models.DesiredLRP
 		return nil, err
 	}
 
-	return response.DesiredLrp, response.Error.ToError()
+	return response.DesiredLrp, response.Error
 }
 
-func (c *client) doDesiredLRPLifecycleRequest(route string, request proto.Message) error {
+func (c *client) doDesiredLRPLifecycleRequest(route string, request proto.Message) *models.Error {
 	response := models.DesiredLRPLifecycleResponse{}
 	err := c.doRequest(route, nil, nil, request, &response)
 	if err != nil {
 		return err
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) DesireLRP(desiredLRP *models.DesiredLRP) error {
+func (c *client) DesireLRP(desiredLRP *models.DesiredLRP) *models.Error {
 	request := models.DesireLRPRequest{
 		DesiredLrp: desiredLRP,
 	}
 	return c.doDesiredLRPLifecycleRequest(DesireDesiredLRPRoute, &request)
 }
 
-func (c *client) UpdateDesiredLRP(processGuid string, update *models.DesiredLRPUpdate) error {
+func (c *client) UpdateDesiredLRP(processGuid string, update *models.DesiredLRPUpdate) *models.Error {
 	request := models.UpdateDesiredLRPRequest{
 		ProcessGuid: processGuid,
 		Update:      update,
@@ -337,24 +337,24 @@ func (c *client) UpdateDesiredLRP(processGuid string, update *models.DesiredLRPU
 	return c.doDesiredLRPLifecycleRequest(UpdateDesiredLRPRoute, &request)
 }
 
-func (c *client) RemoveDesiredLRP(processGuid string) error {
+func (c *client) RemoveDesiredLRP(processGuid string) *models.Error {
 	request := models.RemoveDesiredLRPRequest{
 		ProcessGuid: processGuid,
 	}
 	return c.doDesiredLRPLifecycleRequest(RemoveDesiredLRPRoute, &request)
 }
 
-func (c *client) ConvergeLRPs() error {
+func (c *client) ConvergeLRPs() *models.Error {
 	route := ConvergeLRPsRoute
 	response := models.ConvergeLRPsResponse{}
 	err := c.doRequest(route, nil, nil, nil, &response)
 	if err != nil {
 		return err
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) Tasks() ([]*models.Task, error) {
+func (c *client) Tasks() ([]*models.Task, *models.Error) {
 	request := models.TasksRequest{}
 	response := models.TasksResponse{}
 	err := c.doRequest(TasksRoute, nil, nil, &request, &response)
@@ -362,10 +362,10 @@ func (c *client) Tasks() ([]*models.Task, error) {
 		return nil, err
 	}
 
-	return response.Tasks, response.Error.ToError()
+	return response.Tasks, response.Error
 }
 
-func (c *client) TasksByDomain(domain string) ([]*models.Task, error) {
+func (c *client) TasksByDomain(domain string) ([]*models.Task, *models.Error) {
 	request := models.TasksRequest{
 		Domain: domain,
 	}
@@ -375,10 +375,10 @@ func (c *client) TasksByDomain(domain string) ([]*models.Task, error) {
 		return nil, err
 	}
 
-	return response.Tasks, response.Error.ToError()
+	return response.Tasks, response.Error
 }
 
-func (c *client) TasksByCellID(cellId string) ([]*models.Task, error) {
+func (c *client) TasksByCellID(cellId string) ([]*models.Task, *models.Error) {
 	request := models.TasksRequest{
 		CellId: cellId,
 	}
@@ -388,10 +388,10 @@ func (c *client) TasksByCellID(cellId string) ([]*models.Task, error) {
 		return nil, err
 	}
 
-	return response.Tasks, response.Error.ToError()
+	return response.Tasks, response.Error
 }
 
-func (c *client) TaskByGuid(taskGuid string) (*models.Task, error) {
+func (c *client) TaskByGuid(taskGuid string) (*models.Task, *models.Error) {
 	request := models.TaskByGuidRequest{
 		TaskGuid: taskGuid,
 	}
@@ -401,19 +401,19 @@ func (c *client) TaskByGuid(taskGuid string) (*models.Task, error) {
 		return nil, err
 	}
 
-	return response.Task, response.Error.ToError()
+	return response.Task, response.Error
 }
 
-func (c *client) doTaskLifecycleRequest(route string, request proto.Message) error {
+func (c *client) doTaskLifecycleRequest(route string, request proto.Message) *models.Error {
 	response := models.TaskLifecycleResponse{}
 	err := c.doRequest(route, nil, nil, request, &response)
 	if err != nil {
 		return err
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) DesireTask(taskGuid, domain string, taskDef *models.TaskDefinition) error {
+func (c *client) DesireTask(taskGuid, domain string, taskDef *models.TaskDefinition) *models.Error {
 	route := DesireTaskRoute
 	request := models.DesireTaskRequest{
 		TaskGuid:       taskGuid,
@@ -423,7 +423,7 @@ func (c *client) DesireTask(taskGuid, domain string, taskDef *models.TaskDefinit
 	return c.doTaskLifecycleRequest(route, &request)
 }
 
-func (c *client) StartTask(taskGuid string, cellId string) (bool, error) {
+func (c *client) StartTask(taskGuid string, cellId string) (bool, *models.Error) {
 	request := &models.StartTaskRequest{
 		TaskGuid: taskGuid,
 		CellId:   cellId,
@@ -433,10 +433,10 @@ func (c *client) StartTask(taskGuid string, cellId string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return response.ShouldStart, response.Error.ToError()
+	return response.ShouldStart, response.Error
 }
 
-func (c *client) CancelTask(taskGuid string) error {
+func (c *client) CancelTask(taskGuid string) *models.Error {
 	request := models.TaskGuidRequest{
 		TaskGuid: taskGuid,
 	}
@@ -444,7 +444,7 @@ func (c *client) CancelTask(taskGuid string) error {
 	return c.doTaskLifecycleRequest(route, &request)
 }
 
-func (c *client) ResolvingTask(taskGuid string) error {
+func (c *client) ResolvingTask(taskGuid string) *models.Error {
 	request := models.TaskGuidRequest{
 		TaskGuid: taskGuid,
 	}
@@ -452,7 +452,7 @@ func (c *client) ResolvingTask(taskGuid string) error {
 	return c.doTaskLifecycleRequest(route, &request)
 }
 
-func (c *client) DeleteTask(taskGuid string) error {
+func (c *client) DeleteTask(taskGuid string) *models.Error {
 	request := models.TaskGuidRequest{
 		TaskGuid: taskGuid,
 	}
@@ -460,7 +460,7 @@ func (c *client) DeleteTask(taskGuid string) error {
 	return c.doTaskLifecycleRequest(route, &request)
 }
 
-func (c *client) FailTask(taskGuid, failureReason string) error {
+func (c *client) FailTask(taskGuid, failureReason string) *models.Error {
 	request := models.FailTaskRequest{
 		TaskGuid:      taskGuid,
 		FailureReason: failureReason,
@@ -469,7 +469,7 @@ func (c *client) FailTask(taskGuid, failureReason string) error {
 	return c.doTaskLifecycleRequest(route, &request)
 }
 
-func (c *client) CompleteTask(taskGuid, cellId string, failed bool, failureReason, result string) error {
+func (c *client) CompleteTask(taskGuid, cellId string, failed bool, failureReason, result string) *models.Error {
 	request := models.CompleteTaskRequest{
 		TaskGuid:      taskGuid,
 		CellId:        cellId,
@@ -481,7 +481,7 @@ func (c *client) CompleteTask(taskGuid, cellId string, failed bool, failureReaso
 	return c.doTaskLifecycleRequest(route, &request)
 }
 
-func (c *client) ConvergeTasks(kickTaskDuration, expirePendingTaskDuration, expireCompletedTaskDuration time.Duration) error {
+func (c *client) ConvergeTasks(kickTaskDuration, expirePendingTaskDuration, expireCompletedTaskDuration time.Duration) *models.Error {
 	request := &models.ConvergeTasksRequest{
 		KickTaskDuration:            kickTaskDuration.Nanoseconds(),
 		ExpirePendingTaskDuration:   expirePendingTaskDuration.Nanoseconds(),
@@ -493,10 +493,10 @@ func (c *client) ConvergeTasks(kickTaskDuration, expirePendingTaskDuration, expi
 	if err != nil {
 		return err
 	}
-	return response.Error.ToError()
+	return response.Error
 }
 
-func (c *client) SubscribeToEvents() (events.EventSource, error) {
+func (c *client) SubscribeToEvents() (events.EventSource, *models.Error) {
 	eventSource, err := sse.Connect(c.streamingHTTPClient, time.Second, func() *http.Request {
 		request, err := c.reqGen.CreateRequest(EventStreamRoute, nil, nil)
 		if err != nil {
@@ -507,25 +507,25 @@ func (c *client) SubscribeToEvents() (events.EventSource, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, models.NewError(models.Error_NetworkError, err.Error())
 	}
 
 	return events.NewEventSource(eventSource), nil
 }
 
-func (c *client) createRequest(requestName string, params rata.Params, queryParams url.Values, message proto.Message) (*http.Request, error) {
+func (c *client) createRequest(requestName string, params rata.Params, queryParams url.Values, message proto.Message) (*http.Request, *models.Error) {
 	var messageBody []byte
 	var err error
 	if message != nil {
 		messageBody, err = proto.Marshal(message)
 		if err != nil {
-			return nil, err
+			return nil, models.NewError(models.Error_InvalidProtobufMessage, err.Error())
 		}
 	}
 
 	request, err := c.reqGen.CreateRequest(requestName, params, bytes.NewReader(messageBody))
 	if err != nil {
-		return nil, err
+		return nil, models.NewError(models.Error_InvalidRequest, err.Error())
 	}
 
 	request.URL.RawQuery = queryParams.Encode()
@@ -534,17 +534,17 @@ func (c *client) createRequest(requestName string, params rata.Params, queryPara
 	return request, nil
 }
 
-func (c *client) doEvacRequest(route string, defaultKeepContainer bool, request proto.Message) (bool, error) {
+func (c *client) doEvacRequest(route string, defaultKeepContainer bool, request proto.Message) (bool, *models.Error) {
 	var response models.EvacuationResponse
 	err := c.doRequest(route, nil, nil, request, &response)
 	if err != nil {
 		return defaultKeepContainer, err
 	}
 
-	return response.KeepContainer, response.Error.ToError()
+	return response.KeepContainer, response.Error
 }
 
-func (c *client) doRequest(requestName string, params rata.Params, queryParams url.Values, requestBody, responseBody proto.Message) error {
+func (c *client) doRequest(requestName string, params rata.Params, queryParams url.Values, requestBody, responseBody proto.Message) *models.Error {
 	request, err := c.createRequest(requestName, params, queryParams, requestBody)
 	if err != nil {
 		return err
@@ -552,10 +552,10 @@ func (c *client) doRequest(requestName string, params rata.Params, queryParams u
 	return c.do(request, responseBody)
 }
 
-func (c *client) do(request *http.Request, responseObject proto.Message) error {
+func (c *client) do(request *http.Request, responseObject proto.Message) *models.Error {
 	response, err := c.httpClient.Do(request)
 	if err != nil {
-		return err
+		return models.NewError(models.Error_UnknownError, err.Error())
 	}
 	defer response.Body.Close()
 
@@ -565,7 +565,7 @@ func (c *client) do(request *http.Request, responseObject proto.Message) error {
 	}
 
 	if routerError, ok := response.Header[XCfRouterErrorHeader]; ok {
-		return &models.Error{Type: models.RouterError, Message: routerError[0]}
+		return models.NewError(models.Error_RouterError, routerError[0])
 	}
 
 	if parsedContentType == ProtoContentType {
@@ -575,30 +575,27 @@ func (c *client) do(request *http.Request, responseObject proto.Message) error {
 	}
 }
 
-func handleProtoResponse(response *http.Response, responseObject proto.Message) error {
+func handleProtoResponse(response *http.Response, responseObject proto.Message) *models.Error {
 	if responseObject == nil {
-		return &models.Error{Type: models.InvalidRequest, Message: "responseObject cannot be nil"}
+		return models.NewError(models.Error_InvalidRequest, "responseObject cannot be nil")
 	}
 
 	buf, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return &models.Error{Type: models.InvalidResponse, Message: fmt.Sprint("failed to read body: ", err.Error())}
+		return models.NewError(models.Error_InvalidResponse, fmt.Sprint("failed to read body: ", err.Error()))
 	}
 
 	err = proto.Unmarshal(buf, responseObject)
 	if err != nil {
-		return &models.Error{Type: models.InvalidProtobufMessage, Message: fmt.Sprintf("failed to unmarshal proto", err.Error())}
+		return models.NewError(models.Error_InvalidProtobufMessage, fmt.Sprintf("failed to unmarshal proto", err.Error()))
 	}
 
 	return nil
 }
 
-func handleNonProtoResponse(response *http.Response) error {
+func handleNonProtoResponse(response *http.Response) *models.Error {
 	if response.StatusCode > 299 {
-		return &models.Error{
-			Type:    models.InvalidResponse,
-			Message: fmt.Sprintf("Invalid Response with status code: %d", response.StatusCode),
-		}
+		return models.NewError(models.Error_InvalidResponse, fmt.Sprintf("Invalid Response with status code: %d", response.StatusCode))
 	}
 	return nil
 }

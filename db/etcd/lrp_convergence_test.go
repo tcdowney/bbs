@@ -160,8 +160,8 @@ var _ = Describe("LrpConvergence", func() {
 				for i, guid := range testData.validDesiredGuidsWithSomeValidActuals {
 					switch i % 3 {
 					case 0:
-						groups, err := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
-						Expect(err).NotTo(HaveOccurred())
+						groups, modelErr := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(groups).To(HaveLen(2))
 						containIndices(groups, randomIndex1, randomIndex2)
 					case 1:
@@ -169,18 +169,18 @@ var _ = Describe("LrpConvergence", func() {
 						Expect(err).NotTo(HaveOccurred())
 						Expect(response.Node.Nodes).To(HaveLen(1))
 
-						groups, err := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
-						Expect(err).NotTo(HaveOccurred())
+						groups, modelErr := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(groups).To(HaveLen(1))
 						containIndices(groups, randomIndex1)
 					case 2:
-						group1, err := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, guid, randomIndex1)
-						Expect(err).NotTo(HaveOccurred())
+						group1, modelErr := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, guid, randomIndex1)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(group1.Instance).To(BeNil())
 						Expect(group1.Evacuating).NotTo(BeNil())
 
-						group2, err := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, guid, randomIndex2)
-						Expect(err).NotTo(HaveOccurred())
+						group2, modelErr := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, guid, randomIndex2)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(group2.Instance).NotTo(BeNil())
 						Expect(group2.Evacuating).To(BeNil())
 					}
@@ -196,8 +196,8 @@ var _ = Describe("LrpConvergence", func() {
 				for i, guid := range testData.invalidDesiredGuidsWithSomeValidActuals {
 					switch i % 3 {
 					case 0:
-						groups, err := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
-						Expect(err).NotTo(HaveOccurred())
+						groups, modelErr := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(groups).To(HaveLen(2))
 						containIndices(groups, randomIndex1, randomIndex2)
 					case 1:
@@ -205,18 +205,18 @@ var _ = Describe("LrpConvergence", func() {
 						Expect(err).NotTo(HaveOccurred())
 						Expect(response.Node.Nodes).To(HaveLen(1))
 
-						groups, err := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
-						Expect(err).NotTo(HaveOccurred())
+						groups, modelErr := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(groups).To(HaveLen(1))
 						containIndices(groups, randomIndex1)
 					case 2:
-						group1, err := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, guid, randomIndex1)
-						Expect(err).NotTo(HaveOccurred())
+						group1, modelErr := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, guid, randomIndex1)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(group1.Instance).To(BeNil())
 						Expect(group1.Evacuating).NotTo(BeNil())
 
-						group2, err := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, guid, randomIndex2)
-						Expect(err).NotTo(HaveOccurred())
+						group2, modelErr := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, guid, randomIndex2)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(group2.Instance).NotTo(BeNil())
 						Expect(group2.Evacuating).To(BeNil())
 					}
@@ -232,8 +232,8 @@ var _ = Describe("LrpConvergence", func() {
 				for i, guid := range testData.unknownDesiredGuidsWithSomeValidActuals {
 					switch i % 3 {
 					case 0:
-						groups, err := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
-						Expect(err).NotTo(HaveOccurred())
+						groups, modelErr := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(groups).To(HaveLen(2))
 						containIndices(groups, randomIndex1, randomIndex2)
 					case 1:
@@ -241,8 +241,8 @@ var _ = Describe("LrpConvergence", func() {
 						Expect(err).NotTo(HaveOccurred())
 						Expect(response.Node.Nodes).To(HaveLen(1))
 
-						groups, err := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
-						Expect(err).NotTo(HaveOccurred())
+						groups, modelErr := etcdDB.ActualLRPGroupsByProcessGuid(logger, guid)
+						Expect(modelErr).NotTo(HaveOccurred())
 						Expect(groups).To(HaveLen(1))
 						containIndices(groups, randomIndex1)
 					case 2:

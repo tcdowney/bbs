@@ -103,7 +103,7 @@ type crashTestResult struct {
 	CrashReason  string
 	ShouldUpdate bool
 	Auction      bool
-	ReturnedErr  error
+	ReturnedErr  *models.Error
 }
 
 func itUnclaimsTheLRP() crashTestResult {
@@ -152,7 +152,7 @@ func itDoesNotChangeTheCrashedLRP() crashTestResult {
 func (t crashTest) Test() {
 	Context(t.Name, func() {
 		var (
-			crashErr                 error
+			crashErr                 *models.Error
 			actualLRPKey             *models.ActualLRPKey
 			instanceKey              *models.ActualLRPInstanceKey
 			initialTimestamp         int64
@@ -189,7 +189,7 @@ func (t crashTest) Test() {
 				Expect(crashErr).NotTo(HaveOccurred())
 			})
 		} else {
-			It(fmt.Sprintf("returned error should be '%s'", t.Result.ReturnedErr.Error()), func() {
+			It(fmt.Sprintf("returned error should be '%s'", t.Result.ReturnedErr.Message), func() {
 				Expect(crashErr).To(Equal(t.Result.ReturnedErr))
 			})
 		}
@@ -274,7 +274,7 @@ func (t crashTest) Test() {
 			var beforeActualGroup *models.ActualLRPGroup
 
 			BeforeEach(func() {
-				var err error
+				var err *models.Error
 				beforeActualGroup, err = etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, actualLRPKey.ProcessGuid, actualLRPKey.Index)
 				Expect(err).NotTo(HaveOccurred())
 				instanceKey.InstanceGuid = "another-guid"

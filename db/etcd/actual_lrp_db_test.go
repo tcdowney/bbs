@@ -363,7 +363,7 @@ var _ = Describe("ActualLRPDB", func() {
 				})
 
 				It("returns a validation error", func() {
-					Expect(claimErr.Type).To(Equal(models.InvalidRecord))
+					Expect(claimErr.Type).To(Equal(models.Error_InvalidRecord))
 				})
 
 				It("does not modify the persisted actual LRP", func() {
@@ -424,7 +424,7 @@ var _ = Describe("ActualLRPDB", func() {
 
 					It("does not alter the state of the persisted LRP", func() {
 						lrpGroupInBBS, err := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, processGuid, index)
-						Expect(err).NotTo(HaveOccurred())
+						Expect(err).To(BeNil())
 
 						Expect(lrpGroupInBBS.Instance.State).To(Equal(models.ActualLRPStateClaimed))
 					})
@@ -575,7 +575,7 @@ var _ = Describe("ActualLRPDB", func() {
 
 			It("does not create an actual LRP", func() {
 				_, err := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, "process-guid", 1)
-				Expect(err).To(HaveOccurred())
+				Expect(err).NotTo(BeNil())
 			})
 		})
 	})
@@ -1116,12 +1116,12 @@ var _ = Describe("ActualLRPDB", func() {
 			})
 
 			It("does not error", func() {
-				Expect(removeErr).NotTo(HaveOccurred())
+				Expect(removeErr).To(BeNil())
 			})
 
 			It("removes the actual LRP", func() {
 				lrpGroupInBBS, err := etcdDB.ActualLRPGroupByProcessGuidAndIndex(logger, processGuid, index)
-				Expect(err).To(HaveOccurred())
+				Expect(err).NotTo(BeNil())
 				Expect(err).To(Equal(models.ErrResourceNotFound))
 				Expect(lrpGroupInBBS).To(BeNil())
 			})

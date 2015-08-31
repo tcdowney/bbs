@@ -13,5 +13,5 @@ type LRPDB interface {
 	ConvergeLRPs(logger lager.Logger)
 
 	// Exposed For Test
-	GatherAndPruneLRPs(logger lager.Logger) (*models.ConvergenceInput, error)
+	GatherAndPruneLRPs(logger lager.Logger) (*models.ConvergenceInput, *models.Error)
 }

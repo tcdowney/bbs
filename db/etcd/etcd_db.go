@@ -93,7 +93,7 @@ func (db *ETCDDB) supportsBinary() bool {
 func (db *ETCDDB) serializeModel(logger lager.Logger, model models.Versioner) ([]byte, *models.Error) {
 	data, err := models.MarshalEnvelope(db.format, model)
 	if err != nil {
-		logger.Error("failed-ro-serialize-model", err)
+		logger.Error("failed-ro-serialize-model", err.ToError())
 		return nil, err
 	}
 	return data, nil

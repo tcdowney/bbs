@@ -17,7 +17,7 @@ var _ = Describe("Evacuation", func() {
 		claimedTest := func(base evacuationTest) evacuationTest {
 			return evacuationTest{
 				Name: base.Name,
-				Subject: func() (bool, error) {
+				Subject: func() (bool, *models.Error) {
 					return etcdDB.EvacuateClaimedActualLRP(logger, &lrpKey, &alphaInstanceKey)
 				},
 				InstanceLRP:   base.InstanceLRP,
@@ -29,7 +29,7 @@ var _ = Describe("Evacuation", func() {
 		runningTest := func(base evacuationTest) evacuationTest {
 			return evacuationTest{
 				Name: base.Name,
-				Subject: func() (bool, error) {
+				Subject: func() (bool, *models.Error) {
 					return etcdDB.EvacuateRunningActualLRP(logger, &lrpKey, &alphaInstanceKey, &alphaNetInfo, alphaEvacuationTTL)
 				},
 				InstanceLRP:   base.InstanceLRP,
@@ -41,7 +41,7 @@ var _ = Describe("Evacuation", func() {
 		stoppedTest := func(base evacuationTest) evacuationTest {
 			return evacuationTest{
 				Name: base.Name,
-				Subject: func() (bool, error) {
+				Subject: func() (bool, *models.Error) {
 					return etcdDB.EvacuateStoppedActualLRP(logger, &lrpKey, &alphaInstanceKey)
 				},
 				InstanceLRP:   base.InstanceLRP,
@@ -53,7 +53,7 @@ var _ = Describe("Evacuation", func() {
 		crashedTest := func(base evacuationTest) evacuationTest {
 			return evacuationTest{
 				Name: base.Name,
-				Subject: func() (bool, error) {
+				Subject: func() (bool, *models.Error) {
 					return etcdDB.EvacuateCrashedActualLRP(logger, &lrpKey, &alphaInstanceKey, "crashed")
 				},
 				InstanceLRP:   base.InstanceLRP,
@@ -65,7 +65,7 @@ var _ = Describe("Evacuation", func() {
 		removalTest := func(base evacuationTest) evacuationTest {
 			return evacuationTest{
 				Name: base.Name,
-				Subject: func() (bool, error) {
+				Subject: func() (bool, *models.Error) {
 					err := etcdDB.RemoveEvacuatingActualLRP(logger, &lrpKey, &alphaInstanceKey)
 					return false, err
 				},
@@ -604,7 +604,7 @@ type testable interface {
 
 type evacuationTest struct {
 	Name          string
-	Subject       func() (bool, error)
+	Subject       func() (bool, *models.Error)
 	InstanceLRP   lrpSetupFunc
 	EvacuatingLRP lrpSetupFunc
 	Result        testResult
@@ -670,7 +670,7 @@ type testResult struct {
 	Instance         *instanceLRPStatus
 	Evacuating       *evacuatingLRPStatus
 	AuctionRequested bool
-	ReturnedError    error
+	ReturnedError    *models.Error
 	RetainContainer  bool
 }
 
@@ -753,7 +753,7 @@ func anUnchangedCrashedInstanceLRP() *instanceLRPStatus {
 	return instance
 }
 
-func newTestResult(instanceStatus *instanceLRPStatus, evacuatingStatus *evacuatingLRPStatus, retainContainer bool, err error) testResult {
+func newTestResult(instanceStatus *instanceLRPStatus, evacuatingStatus *evacuatingLRPStatus, retainContainer bool, err *models.Error) testResult {
 	result := testResult{
 		Instance:        instanceStatus,
 		Evacuating:      evacuatingStatus,
@@ -768,21 +768,21 @@ func newTestResult(instanceStatus *instanceLRPStatus, evacuatingStatus *evacuati
 	return result
 }
 
-func instanceNoEvacuating(instanceStatus *instanceLRPStatus, retainContainer bool, err error) testResult {
+func instanceNoEvacuating(instanceStatus *instanceLRPStatus, retainContainer bool, err *models.Error) testResult {
 	return newTestResult(instanceStatus, nil, retainContainer, err)
 }
 
-func evacuatingNoInstance(evacuatingStatus *evacuatingLRPStatus, retainContainer bool, err error) testResult {
+func evacuatingNoInstance(evacuatingStatus *evacuatingLRPStatus, retainContainer bool, err *models.Error) testResult {
 	return newTestResult(nil, evacuatingStatus, retainContainer, err)
 }
 
-func noInstanceNoEvacuating(retainContainer bool, err error) testResult {
+func noInstanceNoEvacuating(retainContainer bool, err *models.Error) testResult {
 	return newTestResult(nil, nil, retainContainer, err)
 }
 
 func (t evacuationTest) Test() {
 	Context(t.Name, func() {
-		var evacuateErr error
+		var evacuateErr *models.Error
 		var initialTimestamp int64
 		var initialInstanceModificationIndex uint32
 		var initialEvacuatingModificationIndex uint32
@@ -814,7 +814,7 @@ func (t evacuationTest) Test() {
 				Expect(evacuateErr).NotTo(HaveOccurred())
 			})
 		} else {
-			It(fmt.Sprintf("returned error should be '%s'", t.Result.ReturnedError.Error()), func() {
+			It(fmt.Sprintf("returned error should be '%s'", t.Result.ReturnedError.Message), func() {
 				Expect(evacuateErr).To(Equal(t.Result.ReturnedError))
 			})
 		}
@@ -1009,7 +1009,7 @@ func (t evacuationTest) Test() {
 	})
 }
 
-func getEvacuatingActualLRP(lrpKey models.ActualLRPKey) (models.ActualLRP, int64, error) {
+func getEvacuatingActualLRP(lrpKey models.ActualLRPKey) (models.ActualLRP, int64, *models.Error) {
 	node, err := storeClient.Get(etcddb.EvacuatingActualLRPSchemaPath(lrpKey.ProcessGuid, lrpKey.Index), false, true)
 	if etcdErrCode(err) == etcddb.ETCDErrKeyNotFound {
 		return models.ActualLRP{}, 0, models.ErrResourceNotFound

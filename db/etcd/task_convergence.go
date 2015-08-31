@@ -95,7 +95,7 @@ func (db *ETCDDB) ConvergeTasks(
 		task := new(models.Task)
 		err := db.deserializeModel(logger, node, task)
 		if err != nil {
-			logger.Error("failed-to-unmarshal-task-json", err, lager.Data{
+			logger.Error("failed-to-unmarshal-task-json", err.ToError(), lager.Data{
 				"key":   node.Key,
 				"value": node.Value,
 			})
@@ -215,7 +215,7 @@ func demoteToCompleted(task *models.Task) *models.Task {
 	return task
 }
 
-func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask, logger lager.Logger) error {
+func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask, logger lager.Logger) *models.Error {
 	if len(tasksToCAS) == 0 {
 		return nil
 	}
@@ -227,7 +227,7 @@ func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask,
 		task.UpdatedAt = db.clock.Now().UnixNano()
 		value, err := db.serializeModel(logger, task)
 		if err != nil {
-			logger.Error("failed-to-marshal", err, lager.Data{
+			logger.Error("failed-to-marshal", err.ToError(), lager.Data{
 				"task-guid": task.TaskGuid,
 			})
 			continue
@@ -246,7 +246,7 @@ func (db *ETCDDB) batchCompareAndSwapTasks(tasksToCAS []compareAndSwappableTask,
 
 	throttler, err := workpool.NewThrottler(throttlerSize, works)
 	if err != nil {
-		return err
+		return models.NewError(models.Error_UnknownError, err.Error())
 	}
 
 	throttler.Work()
