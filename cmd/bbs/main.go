@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/auctioneer"
-	"github.com/cloudfoundry-incubator/bbs/cellhandlers"
 	consuldb "github.com/cloudfoundry-incubator/bbs/db/consul"
 	etcddb "github.com/cloudfoundry-incubator/bbs/db/etcd"
 	"github.com/cloudfoundry-incubator/bbs/events"
@@ -19,6 +18,7 @@ import (
 	cf_lager "github.com/cloudfoundry-incubator/cf-lager"
 	"github.com/cloudfoundry-incubator/cf_http"
 	"github.com/cloudfoundry-incubator/consuladapter"
+	"github.com/cloudfoundry-incubator/rep"
 	"github.com/cloudfoundry/dropsonde"
 	etcdclient "github.com/coreos/go-etcd/etcd"
 	"github.com/pivotal-golang/clock"
@@ -183,9 +183,9 @@ func initializeEtcdDB(logger lager.Logger, etcdFlags *ETCDFlags, cbClient taskwo
 		formatting,
 		initializeEtcdStoreClient(logger, etcdFlags),
 		initializeAuctioneerClient(logger),
-		cellhandlers.NewClient(),
 		initializeConsulDB(logger),
 		clock.NewClock(),
+		rep.NewClientFactory(cf_http.NewClient()),
 		cbClient,
 	)
 }

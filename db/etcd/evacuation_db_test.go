@@ -834,9 +834,9 @@ func (t evacuationTest) Test() {
 
 		if t.Result.AuctionRequested {
 			It("starts an auction", func() {
-				Expect(auctioneerClient.RequestLRPAuctionsCallCount()).To(Equal(1))
+				Expect(fakeAuctioneerClient.RequestLRPAuctionsCallCount()).To(Equal(1))
 
-				requestedAuctions := auctioneerClient.RequestLRPAuctionsArgsForCall(0)
+				requestedAuctions := fakeAuctioneerClient.RequestLRPAuctionsArgsForCall(0)
 				Expect(requestedAuctions).To(HaveLen(1))
 
 				Expect(*requestedAuctions[0].DesiredLRP).To(Equal(desiredLRP))
@@ -845,7 +845,7 @@ func (t evacuationTest) Test() {
 
 			Context("when starting the auction fails", func() {
 				BeforeEach(func() {
-					auctioneerClient.RequestLRPAuctionsReturns(errors.New("error"))
+					fakeAuctioneerClient.RequestLRPAuctionsReturns(errors.New("error"))
 				})
 
 				It("returns an UnknownError", func() {
@@ -874,7 +874,7 @@ func (t evacuationTest) Test() {
 			})
 		} else {
 			It("does not start an auction", func() {
-				Expect(auctioneerClient.RequestLRPAuctionsCallCount()).To(Equal(0))
+				Expect(fakeAuctioneerClient.RequestLRPAuctionsCallCount()).To(Equal(0))
 			})
 		}
 

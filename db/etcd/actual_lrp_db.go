@@ -599,7 +599,9 @@ func (db *ETCDDB) RetireActualLRP(logger lager.Logger, key *models.ActualLRPKey)
 			logger.Info("stopping-lrp-instance", lager.Data{
 				"actual-lrp-key": key,
 			})
-			cellErr := db.cellClient.StopLRPInstance(cell.RepAddress, key, instanceKey)
+
+			repClient := db.repClientFactory.CreateClient(cell.RepAddress)
+			cellErr := repClient.StopLRPInstance(key, instanceKey)
 			if cellErr != nil {
 				err = models.ErrActualLRPCannotBeStopped
 			}

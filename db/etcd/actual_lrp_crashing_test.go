@@ -240,9 +240,9 @@ func (t crashTest) Test() {
 
 		if t.Result.Auction {
 			It("starts an auction", func() {
-				Expect(auctioneerClient.RequestLRPAuctionsCallCount()).To(Equal(1))
+				Expect(fakeAuctioneerClient.RequestLRPAuctionsCallCount()).To(Equal(1))
 
-				requestedAuctions := auctioneerClient.RequestLRPAuctionsArgsForCall(0)
+				requestedAuctions := fakeAuctioneerClient.RequestLRPAuctionsArgsForCall(0)
 				Expect(requestedAuctions).To(HaveLen(1))
 
 				desiredLRP, err := etcdDB.DesiredLRPByProcessGuid(logger, actualLRPKey.ProcessGuid)
@@ -266,7 +266,7 @@ func (t crashTest) Test() {
 			})
 		} else {
 			It("does not start an auction", func() {
-				Expect(auctioneerClient.RequestLRPAuctionsCallCount()).To(Equal(0))
+				Expect(fakeAuctioneerClient.RequestLRPAuctionsCallCount()).To(Equal(0))
 			})
 		}
 

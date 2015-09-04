@@ -195,7 +195,7 @@ var _ = Describe("DesiredLRPDB", func() {
 
 			Context("when an auctioneer is present", func() {
 				It("emits start auction requests", func() {
-					originalAuctionCallCount := auctioneerClient.RequestLRPAuctionsCallCount()
+					originalAuctionCallCount := fakeAuctioneerClient.RequestLRPAuctionsCallCount()
 
 					err := etcdDB.DesireLRP(logger, lrp)
 					Expect(err).NotTo(HaveOccurred())
@@ -203,9 +203,9 @@ var _ = Describe("DesiredLRPDB", func() {
 					desired, err := etcdDB.DesiredLRPByProcessGuid(logger, lrp.ProcessGuid)
 					Expect(err).NotTo(HaveOccurred())
 
-					Consistently(auctioneerClient.RequestLRPAuctionsCallCount).Should(Equal(originalAuctionCallCount + 1))
+					Consistently(fakeAuctioneerClient.RequestLRPAuctionsCallCount).Should(Equal(originalAuctionCallCount + 1))
 
-					startAuctions := auctioneerClient.RequestLRPAuctionsArgsForCall(originalAuctionCallCount)
+					startAuctions := fakeAuctioneerClient.RequestLRPAuctionsArgsForCall(originalAuctionCallCount)
 					Expect(startAuctions).To(HaveLen(1))
 					Expect(startAuctions[0].DesiredLRP).To(Equal(desired))
 					Expect(startAuctions[0].Indices).To(ConsistOf([]uint{0, 1, 2, 3, 4}))
@@ -268,21 +268,23 @@ var _ = Describe("DesiredLRPDB", func() {
 				})
 
 				It("stops all actual lrps for the desired lrp", func() {
-					originalStopCallCount := cellClient.StopLRPInstanceCallCount()
+					originalStopCallCount := fakeRepClient.StopLRPInstanceCallCount()
 
 					err := etcdDB.RemoveDesiredLRP(logger, lrp.ProcessGuid)
 					Expect(err).NotTo(HaveOccurred())
 
-					Expect(cellClient.StopLRPInstanceCallCount()).To(Equal(originalStopCallCount + int(lrp.Instances)))
+					callCount := originalStopCallCount + int(lrp.Instances)
+
+					Expect(fakeRepClientFactory.CreateClientCallCount()).To(Equal(callCount))
+					Expect(fakeRepClientFactory.CreateClientArgsForCall(0)).To(Equal(cellPresence.RepAddress))
+
+					Expect(fakeRepClient.StopLRPInstanceCallCount()).To(Equal(callCount))
 
 					stoppedActuals := make([]int32, lrp.Instances)
 					for i := int32(0); i < lrp.Instances; i++ {
-						addr, key, _ := cellClient.StopLRPInstanceArgsForCall(originalStopCallCount + int(i))
-						Expect(addr).To(Equal(cellPresence.RepAddress))
-
+						key, _ := fakeRepClient.StopLRPInstanceArgsForCall(originalStopCallCount + int(i))
 						stoppedActuals[i] = key.Index
 					}
-
 					Expect(stoppedActuals).To(ConsistOf([]int32{0, 1, 2, 3, 4}))
 				})
 			})
@@ -355,17 +357,17 @@ var _ = Describe("DesiredLRPDB", func() {
 
 				Context("when an auctioneer is present", func() {
 					It("emits start auction requests", func() {
-						originalAuctionCallCount := auctioneerClient.RequestLRPAuctionsCallCount()
+						originalAuctionCallCount := fakeAuctioneerClient.RequestLRPAuctionsCallCount()
 
 						err := etcdDB.UpdateDesiredLRP(logger, lrp.ProcessGuid, update)
 						Expect(err).NotTo(HaveOccurred())
 
-						Consistently(auctioneerClient.RequestLRPAuctionsCallCount).Should(Equal(originalAuctionCallCount + 1))
+						Consistently(fakeAuctioneerClient.RequestLRPAuctionsCallCount).Should(Equal(originalAuctionCallCount + 1))
 
 						updated, err := etcdDB.DesiredLRPByProcessGuid(logger, lrp.ProcessGuid)
 						Expect(err).NotTo(HaveOccurred())
 
-						startAuctions := auctioneerClient.RequestLRPAuctionsArgsForCall(originalAuctionCallCount)
+						startAuctions := fakeAuctioneerClient.RequestLRPAuctionsArgsForCall(originalAuctionCallCount)
 						Expect(startAuctions).To(HaveLen(1))
 						Expect(startAuctions[0].DesiredLRP).To(Equal(updated))
 						Expect(startAuctions[0].Indices).To(HaveLen(1))
@@ -394,18 +396,20 @@ var _ = Describe("DesiredLRPDB", func() {
 					})
 
 					It("stops the instances at the removed indices", func() {
-						originalStopCallCount := cellClient.StopLRPInstanceCallCount()
+						originalStopCallCount := fakeRepClient.StopLRPInstanceCallCount()
 
 						err := etcdDB.UpdateDesiredLRP(logger, lrp.ProcessGuid, update)
 						Expect(err).NotTo(HaveOccurred())
 
-						Expect(cellClient.StopLRPInstanceCallCount()).To(Equal(originalStopCallCount + int(lrp.Instances-*(update.Instances))))
+						callCount := originalStopCallCount + int(lrp.Instances-*(update.Instances))
 
+						Expect(fakeRepClientFactory.CreateClientCallCount()).To(Equal(callCount))
+						Expect(fakeRepClientFactory.CreateClientArgsForCall(0)).To(Equal(cellPresence.RepAddress))
+
+						Expect(fakeRepClient.StopLRPInstanceCallCount()).To(Equal(callCount))
 						stoppedActuals := make([]int32, lrp.Instances-*update.Instances)
 						for i := int32(0); i < (lrp.Instances - *update.Instances); i++ {
-							addr, key, _ := cellClient.StopLRPInstanceArgsForCall(originalStopCallCount + int(i))
-							Expect(addr).To(Equal(cellPresence.RepAddress))
-
+							key, _ := fakeRepClient.StopLRPInstanceArgsForCall(originalStopCallCount + int(i))
 							stoppedActuals[i] = key.Index
 						}
 

@@ -204,7 +204,8 @@ func (db *ETCDDB) CancelTask(logger lager.Logger, taskGuid string) error {
 	logger.Info("succeeded-getting-cell-info")
 
 	logger.Info("cell-client-cancelling-task")
-	err = db.cellClient.CancelTask(cellPresence.RepAddress, task.TaskGuid)
+	repClient := db.repClientFactory.CreateClient(cellPresence.RepAddress)
+	err = repClient.CancelTask(task.TaskGuid)
 	if err != nil {
 		logger.Error("cell-client-failed-cancelling-task", err)
 		return nil

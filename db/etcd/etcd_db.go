@@ -6,11 +6,11 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry-incubator/auctioneer"
-	"github.com/cloudfoundry-incubator/bbs/cellhandlers"
 	"github.com/cloudfoundry-incubator/bbs/db"
 	"github.com/cloudfoundry-incubator/bbs/format"
 	"github.com/cloudfoundry-incubator/bbs/models"
 	"github.com/cloudfoundry-incubator/bbs/taskworkpool"
+	"github.com/cloudfoundry-incubator/rep"
 	"github.com/coreos/go-etcd/etcd"
 	etcdclient "github.com/coreos/go-etcd/etcd"
 	"github.com/pivotal-golang/clock"
@@ -58,7 +58,7 @@ type ETCDDB struct {
 	inflightWatches   map[chan bool]bool
 	inflightWatchLock *sync.Mutex
 	auctioneerClient  auctioneer.Client
-	cellClient        cellhandlers.Client
+	repClientFactory  rep.ClientFactory
 
 	taskCompletionClient taskworkpool.TaskCompletionClient
 
@@ -69,9 +69,9 @@ func NewETCD(
 	format *format.Format,
 	storeClient StoreClient,
 	auctioneerClient auctioneer.Client,
-	cellClient cellhandlers.Client,
 	cellDB db.CellDB,
 	clock clock.Clock,
+	repClientFactory rep.ClientFactory,
 	taskCC taskworkpool.TaskCompletionClient,
 ) *ETCDDB {
 	return &ETCDDB{
@@ -81,7 +81,7 @@ func NewETCD(
 		map[chan bool]bool{},
 		&sync.Mutex{},
 		auctioneerClient,
-		cellClient,
+		repClientFactory,
 		taskCC,
 		cellDB,
 	}
