@@ -43,6 +43,30 @@ var listenAddress = flag.String(
 	"The host:port that the server is bound to.",
 )
 
+var requireSSL = flag.Bool(
+	"requireSSL",
+	false,
+	"whether the bbs server should require ssl-secured communication",
+)
+
+var caFile = flag.String(
+	"caFile",
+	"",
+	"the certificate authority public key file to use with ssl auth",
+)
+
+var certFile = flag.String(
+	"certFile",
+	"",
+	"the public key file to use with ssl auth",
+)
+
+var keyFile = flag.String(
+	"keyFile",
+	"",
+	"the private key file to use with ssl auth",
+)
+
 var advertiseURL = flag.String(
 	"advertiseURL",
 	"",
@@ -161,6 +185,8 @@ func main() {
 
 	handler := handlers.New(logger, db, hub, migrationsDone)
 
+	server := http_server.New(*listenAddress, handler)
+
 	metricsNotifier := metrics.NewPeriodicMetronNotifier(
 		logger,
 		*reportInterval,
@@ -171,7 +197,7 @@ func main() {
 	members := grouper.Members{
 		{"lock-maintainer", maintainer},
 		{"workPool", cbWorkPool},
-		{"server", http_server.New(*listenAddress, handler)},
+		{"server", server},
 		{"migration-manager", migrationManager},
 		{"watcher", watcher},
 		{"hub-closer", closeHub(logger.Session("hub-closer"), hub)},

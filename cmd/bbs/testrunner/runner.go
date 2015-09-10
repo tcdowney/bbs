@@ -2,6 +2,7 @@ package testrunner
 
 import (
 	"os/exec"
+	"strconv"
 	"time"
 
 	"github.com/tedsuo/ifrit/ginkgomon"
@@ -18,6 +19,11 @@ type Args struct {
 	EtcdClientKey         string
 	EtcdCluster           string
 	MetricsReportInterval time.Duration
+
+	RequireSSL bool
+	CAFile     string
+	KeyFile    string
+	CertFile   string
 }
 
 func (args Args) ArgSlice() []string {
@@ -33,6 +39,11 @@ func (args Args) ArgSlice() []string {
 		"-listenAddress", args.Address,
 		"-logLevel", "debug",
 		"-metricsReportInterval", args.MetricsReportInterval.String(),
+
+		"-requireSSL", strconv.FormatBool(args.RequireSSL),
+		"-caFile", args.CAFile,
+		"-certFile", args.CertFile,
+		"-keyFile", args.KeyFile,
 	}
 }
 
