@@ -83,7 +83,7 @@ err := client.DesireLRP(logger, &models.DesiredLRP{
 				HttpCheck: &models.HTTPCheck{
 					Port:             12345,
 					RequestTimeoutMs: 100,
-					Path:             "/some/path",
+					Endpoint:             "/some/path",
 				},
 			},
 		},
@@ -278,7 +278,7 @@ Defines an http health check.
 
 - The `Port` must be a nonzero value and no greater than 65535.
 - `RequestTimeoutMs` is the timeout in ms for the entire http request (includes tcp connection establish time, sending request and receiving the response).
-- `Path` is the http request path used to in the http request.
+- `Endpoint` is the http request path used to in the http request.
 
 `HTTPCheck` can fail for the following reaosons:
 

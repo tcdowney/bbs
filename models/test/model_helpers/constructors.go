@@ -226,7 +226,7 @@ func NewValidHTTPCheckDefinition() *models.CheckDefinition {
 				HttpCheck: &models.HTTPCheck{
 					Port:             12345,
 					RequestTimeoutMs: 100,
-					Path:             "/some/path",
+					Endpoint:         "/some/path",
 				},
 			},
 		},

@@ -25,5 +25,5 @@ message TCPCheck {
 message HTTPCheck {
   optional uint32 port = 1;
   optional uint64 request_timeout_ms = 2 [(gogoproto.jsontag) = "request_timeout_ms,omitempty"];
-  optional string path = 3;
+  optional string endpoint = 3;
 }
